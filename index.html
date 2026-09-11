@@ -116,8 +116,6 @@
   .hpot .s{font-size:12px;color:var(--muted)}
   .hpot .s b{font-family:var(--display);color:var(--ink);font-weight:700}
   @media (max-width:560px){
-    .hright{justify-content:space-between;min-width:0;width:100%}
-    .hpot{text-align:left;align-items:flex-start}
     .hpot .v{font-size:24px}
   }
   .s{border-radius:11px;padding:8px 13px;text-align:center;min-width:76px;flex:1}
@@ -636,6 +634,12 @@
     body.head-open .hrow{flex-wrap:wrap}
     body.head-open .hright{width:100%;justify-content:space-between}
     .minirow{display:flex}
+    /* В свёрнутой шапке телефона места нет: сумма дня налезала на
+       мини-строку и кнопки. Она никуда не делась — то же число видно
+       в блоке денег сразу под шапкой. Развернёте шапку — покажем. */
+    .hpot{display:none}
+    body.head-open .hpot{display:flex;text-align:left;align-items:flex-start;width:100%}
+    body.head-open .hpot .v{font-size:26px}
     .foldbtn{display:block}
     .hrow .hstats{display:none}
     .ring{width:46px;height:46px}
@@ -750,6 +754,9 @@
     .hleft .themebtn svg{width:18px;height:18px}
 
     /* --- круглая кнопка добавления --- */
+    /* Круглая «+» висит в правом нижнем углу поверх страницы.
+       Красная плашка про залог тянулась под неё, и текст обрезался. */
+    .dbtwarn,.dbtdone{padding-right:78px}
     .fab{display:flex;align-items:center;justify-content:center;
       position:fixed;right:15px;z-index:130;
       bottom:calc(104px + env(safe-area-inset-bottom));
@@ -1064,7 +1071,7 @@
   .skinsw button.on{background:var(--ink);border-color:var(--ink);color:var(--onbright)}
   .skinsw button.on:hover{background:var(--ink);color:var(--onbright)}
   .skinsw button:focus-visible{outline:2px solid var(--wk-fg);outline-offset:2px}
-  @media (max-width:420px){
+  @media (max-width:560px){
     .skinsw{gap:7px}
     .skinsw .cap{width:100%}
     .skinsw button{padding:7px 11px 7px 9px;font-size:12px}
@@ -1852,13 +1859,15 @@ function openPayout(){
     const inp=b.querySelector("#payInp");
     setTimeout(()=>inp.select(),0);
     b.querySelector("#payCancel").onclick=close;
-    b.querySelector("#payOk").onclick=()=>{
+    b.querySelector("#payOk").onclick=async()=>{
       const v=parseInt(inp.value,10);
       if(!isFinite(v)||v<=0){ close(); return; }
       /* Заметно больше остатка — скорее всего лишний ноль, а не
          осознанный аванс. Переспрашиваем, но не запрещаем: аванс
          тоже бывает настоящим решением родителя. */
-      if(v>owed+1 && !confirm(`Остаток к выдаче — ${owed.toLocaleString("ru-RU")} ₽, а вписано ${v.toLocaleString("ru-RU")} ₽. Это аванс, не опечатка?`)) return;
+      if(v>owed+1 && !(await ask(
+        `Остаток к выдаче — ${owed.toLocaleString("ru-RU")} ₽, а вписано ${v.toLocaleString("ru-RU")} ₽.`,
+        {title:"Это аванс?", ok:"Да, аванс", no:"Исправить"}))) return;
       prefs.paidTotal=(prefs.paidTotal||0)+v; savePrefs(); render(); celebrate();
       close();
     };
@@ -2271,9 +2280,15 @@ const isPhone=()=>phone.matches;
    при развороте счётчиков .hright переносится на вторую строку, и кнопка
    уехала бы вниз вместе с ним. */
 function placeTheme(){
-  const b=$("#themeBtn"); if(!b)return;
   const home=document.querySelector(isPhone()?".hleft":".tabsrow");
-  if(home&&b.parentElement!==home) home.appendChild(b);
+  if(!home) return;
+  /* «?» ездит вместе с темой по той же причине: в нижней панели
+     телефона пять мест уже заняты вкладками, шестая кнопка туда
+     не влезала и вылезала отдельной плашкой поверх панели. */
+  ["#howBtn","#themeBtn"].forEach(sel=>{
+    const b=$(sel);
+    if(b && b.parentElement!==home) home.appendChild(b);
+  });
 }
 function setAdd(open){
   prefs.openAdd=!!open; savePrefs(); applyFolds();
@@ -2612,8 +2627,9 @@ function renderBin(){
       <button class="mini red wipe">Стереть</button>`;
     r.querySelector(".bt").textContent=cat.emoji+" "+t.text;
     r.querySelector(".back").onclick=()=>{delete t.del;save();render()};
-    r.querySelector(".wipe").onclick=()=>{
-      if(confirm("Стереть «"+t.text+"» окончательно? Это нельзя отменить.")){
+    r.querySelector(".wipe").onclick=async()=>{
+      if(await ask("Стереть «"+t.text+"» окончательно? Это нельзя отменить.",
+        {title:"Стереть насовсем", ok:"Стереть", danger:true})){
         state.tasks=state.tasks.filter(x=>x.id!==t.id);save();render();
       }
     };
@@ -3003,8 +3019,9 @@ async function init(){
   $("#achBtn").onclick=openAchievements;
   $("#moreBtn").onclick=openMore;
   $("#howBtn").onclick=openHowTo;
-  $("#binClear").onclick=()=>{
-    if(confirm("Стереть всё из корзины окончательно? Это нельзя отменить.")){
+  $("#binClear").onclick=async()=>{
+    if(await ask("Стереть всё из корзины окончательно? Это нельзя отменить.",
+      {title:"Очистить корзину", ok:"Стереть", danger:true})){
       takeSnap("перед очисткой корзины");
       state.tasks=live();save();render();
     }
@@ -3094,9 +3111,10 @@ async function init(){
       };
     });
   };
-  $("#resetBtn").onclick=()=>{
+  $("#resetBtn").onclick=async()=>{
     if(!isParent()){ needParent("Сброс каталога"); return; }
-    if(confirm("Вернуть исходный каталог из 97 дел? Добавленные задачи, даты и отметки будут удалены.")){
+    if(await ask(`Вернуть исходный каталог из ${SEED.length} дел? Добавленные задачи, даты и отметки будут удалены.`,
+      {title:"Сбросить всё", ok:"Сбросить", danger:true})){
       takeSnap("перед сбросом");
       state.tasks=seedTasks();state.filter="all";state.hideDone=false;state.sel=null;save();render();
     }
@@ -3107,6 +3125,33 @@ async function init(){
    странице ничего запомнить: приложение работает, отметки ставятся,
    а после закрытия всё пусто. Молча терять данные нельзя — проверяем
    запись сразу при запуске и честно предупреждаем, если не выходит. */
+/* ---------- Вопрос «да / нет» ----------
+   Системный диалог подтверждения в приложении с экрана «Домой» на
+   айфоне показывается не всегда — на этом уже спотыкались с prompt(),
+   заметка об этом есть выше. Хуже всего, что код при этом ждёт ответа:
+   окно синхронизации замирало на «Проверяю связь…» и не закрывалось,
+   потому что вопрос был задан невидимому диалогу.
+   Своё окно рисуется всегда и одинаково на всех устройствах. */
+function ask(text, o){
+  o = o || {};
+  return new Promise(res=>{
+    let done=false;
+    const fin=v=>{ if(!done){ done=true; res(v); } };
+    modal((b,close)=>{
+      const bg=b.parentElement;
+      if(bg) bg.onclick=e=>{ if(e.target===bg){ close(); fin(false); } };
+      b.innerHTML=`<h4>${o.title||"Подтвердите"}</h4>
+        <p style="white-space:pre-line">${text}</p>
+        <div class="modalfoot">
+          <button class="btn ghost" id="askNo">${o.no||"Отмена"}</button>
+          <button class="btn${o.danger?" danger":""}" id="askOk">${o.ok||"Да"}</button>
+        </div>`;
+      b.querySelector("#askNo").onclick=()=>{ close(); fin(false); };
+      b.querySelector("#askOk").onclick=()=>{ close(); fin(true); };
+    });
+  });
+}
+
 /* ---------- Меню «⋯» ----------
    Выплата и синхронизация — родительские действия. На экране у сына
    они только мешали и стояли вровень с «Достижениями», которые его.
@@ -3401,7 +3446,12 @@ function openSync(){
         /* На сервере уже что-то лежит: молча затирать нельзя ни ту,
            ни другую сторону — спрашиваем прямо. */
         const mine=state.tasks.filter(t=>t.done).length;
-        if(confirm(`На сервере уже есть список (обновление №${row.rev}).\n\nОК — взять серверный и заменить то, что в этом устройстве.\nОтмена — залить туда данные этого устройства (${mine} отмеченных дел).`)){
+        syncMark("off","Ждём вашего ответа…");
+        if(await ask(
+          `На сервере уже есть список — обновление №${row.rev}.\n\n` +
+          `«Взять с сервера» заменит то, что сейчас в этом устройстве.\n` +
+          `«Залить своё» отправит туда данные этого устройства (${mine} отмеченных дел).`,
+          {title:"Чьи данные оставить", ok:"Взять с сервера", no:"Залить своё"})){
           SYNC.rev=row.rev; syncSaveCfg(); syncApply(row.data);
           syncMark("ok","Взяли данные с сервера.");
         }else{
