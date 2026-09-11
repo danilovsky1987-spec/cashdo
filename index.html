@@ -630,7 +630,12 @@
     h1{display:none}
     .headcard{padding:11px 13px}
     .hrow{flex-wrap:nowrap;align-items:flex-start}
-    .hright{width:auto;flex:none;margin-left:auto}
+    /* min-width:250px стоит на .hright в основных стилях — там он держит
+       блок «можно заработать» от схлопывания. На телефоне в свёрнутой шапке
+       оба ребёнка .hright скрыты, а сам блок продолжал занимать 250 пикселей
+       и выдавливал заголовок: от «Сегодня · 11 сентября» на экране оставались
+       обрывки «1» и «бр» по краям плашки со счётом. Здесь min-width снимаем. */
+    .hright{width:auto;flex:none;margin-left:auto;min-width:0}
     body.head-open .hrow{flex-wrap:wrap}
     body.head-open .hright{width:100%;justify-content:space-between}
     .minirow{display:flex}
@@ -841,6 +846,10 @@
     .vtitle::after{content:"▾";font-size:9px;color:var(--faint);flex:none;
       transition:transform .22s}
     body.head-open .vtitle::after{transform:rotate(180deg)}
+    /* Заголовок отдаёт место первым и обрезается многоточием, а счёт,
+       «?» и тема стоят на месте: это кнопки, обрезать их нельзя. */
+    .hleft .vtitle{flex:1 1 auto;min-width:0}
+    .vtitle .vd{min-width:0;overflow:hidden;text-overflow:ellipsis}
     .minirow{margin-top:0;margin-left:auto;flex:none;flex-wrap:nowrap}
     .minirow .p{font-size:12px;padding:4px 8px}
     /* Кольцо и четыре подробных счётчика — только в развёрнутом виде */
