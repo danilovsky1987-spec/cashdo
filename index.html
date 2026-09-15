@@ -755,8 +755,10 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
       transition:transform .28s cubic-bezier(.34,1.35,.5,1)}
     .tab.on::before{transform:translateX(-50%) scaleX(1)}
     .tcnt{left:auto;right:-11px;top:-5px}
-    /* Кнопка темы уезжает из панели в верхнюю строку — скриптом, см. placeTheme().
-       margin-left:auto держит её у правого края и когда счётчиков нет. */
+    /* «⋯» и луна стоят в нижней панели рядом с вкладками. Оправу с них
+       снимаем: в ряду плоских вкладок две плашки с рамкой читаются как
+       чужие. Вкладок три, а не пять — место есть. */
+    .tabsrow .themebtn{width:44px;border:none;background:none;border-radius:0}
     .hleft .themebtn{width:38px;height:38px;border-radius:11px;
       align-self:center;margin-left:auto}
     .hleft .themebtn svg{width:18px;height:18px}
@@ -937,21 +939,24 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .mhero .ms b{font-family:var(--display);color:var(--ink);font-weight:700}
   .mowe{font-size:12.5px;color:var(--muted);margin-top:9px}
   .mowe b{color:var(--ink);font-weight:700}
-  .mact{display:flex;gap:8px;margin-top:11px}
+  /* «⋯» переехала в ряд вкладок, «Достижения» скрыты с 14 сентября —
+     в строке не осталось ничего, кроме пустой полосы под счётом.
+     Вернёте «Достижения» — уберите здесь display:none. */
+  .mact{display:none;gap:8px;margin-top:11px}
   .mact .btn{flex:1}
-  .mact .more{flex:none;width:44px;padding:0;display:grid;place-items:center;position:relative}
+  .themebtn.more{position:relative}
   /* «?» стоит в одном ряду с вкладками, рядом с луной: инструкция нужна
      сыну каждый день, а «⋯» — родительское меню, куда он не заглядывает.
      Оправа та же, что у кнопки темы, чтобы ряд читался как один блок. */
   #howBtn{color:var(--prA-fg)}
   #howBtn:hover{border-color:var(--prA-fg);background:var(--prA-bg)}
   #howBtn .i{width:21px;height:21px;stroke-width:2.1}
-  .mact .more .dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;
+  .more .dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;
     background:transparent}
-  .mact .more .dot.ok{background:var(--done)}
-  .mact .more .dot.err{background:var(--prA-fg)}
-  .mact .more .dot.busy{background:var(--prB-fg)}
-  .mact .more .dot.bk{background:var(--prB-fg)}
+  .more .dot.ok{background:var(--done)}
+  .more .dot.err{background:var(--prA-fg)}
+  .more .dot.busy{background:var(--prB-fg)}
+  .more .dot.bk{background:var(--prB-fg)}
   .mrow{display:flex;flex-direction:column;gap:9px;margin-top:13px;
     padding-top:13px;border-top:1px solid var(--line)}
   .mbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;
@@ -959,6 +964,8 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
     background:var(--soft2);border:1px solid var(--line);border-radius:12px;
     padding:12px 13px;cursor:pointer}
   .mbtn:hover:not(:disabled){background:var(--hover);border-color:var(--edge)}
+  .mbtn.on{border-color:var(--ink);background:var(--card)}
+  .mbtn .mtick{margin-left:auto;color:var(--done);font-weight:700;flex:none}
   .mbtn:disabled{opacity:.45;cursor:default}
   .mbtn span{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:1px}
   .mbtn .i{width:20px;height:20px}
@@ -1185,6 +1192,9 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .whyb:hover{border-color:var(--muted)}
   .whyb.on{border-color:var(--ink);background:var(--soft2);font-weight:600}
   /* Подпись возврата: ребёнок должен видеть причину там же, где дело. */
+  .coolnote{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
+  .row.cooling .cbx{opacity:.45}
+  .row.cooling .t{color:var(--muted)}
   .backnote{display:block;font-size:11px;color:var(--bad-fg);margin-top:2px;
     white-space:normal;line-height:1.35}
   /* Разбивка итога дня: показывается, только когда есть что на проверке. */
@@ -1233,6 +1243,7 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .stn.now .dot{background:#3a2f14;border-color:#fbbf24;color:#fbbf24}
   .stn .t{font-size:12px;color:#98a1b3;line-height:1.3}
   .stn .t b{display:block;font-size:13px;color:#eceff5;font-weight:600}
+  .stn .t em{display:block;font-style:normal;font-size:12px;color:#7fd8a8;font-weight:600;margin:1px 0}
   .stn.now .t b{color:#fbbf24}
   .stn .s{font-family:var(--display);font-weight:700;font-size:12px;color:#7c8496}
   .stn.done .s{color:#4ade80}
@@ -1285,6 +1296,114 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .sqlbox{background:var(--soft2);border:1px solid var(--line);border-radius:10px;
     padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
     line-height:1.5;white-space:pre;overflow-x:auto;color:var(--muted);margin-bottom:10px}
+
+  /* ---------- Одна вкладка — одна мысль ----------
+     Блок денег лежит вне секций вида и рисовался на всех трёх вкладках.
+     Из-за этого на «Всех задачах» приходилось проматывать счёт, приёмку
+     и весь наряд, чтобы добраться до поиска, а на «Истории» итоги
+     показывались дважды. Ничего не удаляем — просто не показываем там,
+     где не к месту: о делах, ждущих приёмки, говорит красная цифра
+     на вкладке «Сегодня». */
+  body[data-view="list"] #moneyBar,
+  body[data-view="hist"] #moneyBar{display:none}
+  /* На «Истории» дела не заводят: ни карточки, ни шторки, ни круглой «+». */
+  body[data-view="hist"] #addOpen,
+  body[data-view="hist"] .addcard,
+  body[data-view="hist"] .scrim{display:none!important}
+  body[data-view="hist"] .fab{opacity:0;pointer-events:none;transform:scale(.7)}
+
+  /* ---------- Шапка долга ----------
+     Сын открывает приложение и должен видеть три вещи сразу: сколько
+     заработал, сколько осталось до нуля и когда ближайший срок. */
+  .dh{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:15px 16px 14px;margin-bottom:12px}
+  .dh .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2px}
+  .dh .two>div{min-width:0}
+  .dh .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .dh .n{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.1;color:var(--ink)}
+  .dh .n.g{color:var(--done)}
+  .dh .steps{display:flex;align-items:flex-start;margin:13px 0 2px}
+  .dh .st{flex:1;text-align:center;position:relative;font-size:10px;color:var(--muted);line-height:1.3}
+  .dh .st::before{content:"";position:absolute;top:8px;left:-50%;width:100%;height:2px;background:var(--track)}
+  .dh .st:first-child::before{display:none}
+  .dh .st.done::before{background:var(--done)}
+  .dh .st i{position:relative;display:block;width:18px;height:18px;border-radius:50%;margin:0 auto 5px;
+    background:var(--track);color:var(--muted);font-style:normal;font-size:10px;font-weight:700;line-height:18px}
+  .dh .st.done i{background:var(--done);color:var(--onbright)}
+  .dh .st.now i{background:var(--card);border:2px solid var(--prA-fg);color:var(--prA-fg);line-height:14px}
+  .dh .st.now{color:var(--prA-fg);font-weight:700}
+  .dh .sep{height:1px;background:var(--soft2);margin:12px 0 11px}
+  .dh .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px}
+  .dh .row .t span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .dh .row .v{font-family:var(--display);font-weight:700;white-space:nowrap}
+  .dh .row .v.due{color:var(--prA-fg)}
+  .dh .row .v.ok{color:var(--done)}
+  /* Что даётся за точку — крупнее даты: ради этого и стараются. */
+  .dh .row .t .gift{display:block;font-style:normal;font-size:13px;color:var(--done);
+    font-weight:600;margin-top:2px}
+  /* В виде «Путь» лестница уже нарисована во весь экран — в шапке её не дублируем. */
+  body[data-skin="path"] #debtBox .steps{display:none}
+
+  /* ---------- Порядок на экране «Сегодня» ----------
+     Наряд — то, ради чего одиннадцатилетний открывает приложение —
+     лежал на 790-й точке, то есть за краем экрана: выше него стояли
+     итог прошлой недели, очередь приёмки и переключатель вида.
+     Порядок задаём флексом, разметку и код рендера не трогаем.
+     У папы наоборот: он открывает приложение, чтобы принять работу,
+     поэтому приёмка поднимается на самый верх. */
+  #moneyBar{display:flex;flex-direction:column}
+  #debtBox   {order:-1}
+  #skinSw    {order:0}
+  #skinBody  {order:1}
+  #pendBox   {order:2}
+  #propBox   {order:3}
+  #tmwBox    {order:4}
+  #weekSumBox{order:5}
+  #mOwe      {order:7}
+  .mact      {order:8}
+  #bkNote    {order:9}
+  body.parent #pendBox{order:0}
+  /* Блоки, уехавшие вниз, встали вплотную к наряду — отбиваем сверху,
+     а не снизу, как было, когда они стояли первыми. */
+  #pendBox .pend,#weekSumBox .wsum{margin-top:12px;margin-bottom:0}
+  body.parent #pendBox .pend{margin-top:0;margin-bottom:12px}
+  /* Переключатель видов — отдельные тумблеры, сразу под шапкой долга.
+     В меню «⋯» его пробовали унести 15 сентября, отец отклонил: настройка
+     экрана должна быть на экране. Тумблер включается сам по себе, поэтому
+     видов может быть и два сразу. */
+  #skinSw{margin:0 0 12px;padding:0;border:0}
+  /* Одна строка: два названия и тумблер между ними, 45 точек высоты. */
+  #skinSw .tg{display:flex;align-items:center;justify-content:center;gap:13px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 14px}
+  #skinSw .sl{font:inherit;font-size:13.5px;font-weight:600;color:var(--faint);
+    background:none;border:0;padding:2px 4px;cursor:pointer;transition:color .18s}
+  #skinSw .sl.on{color:var(--ink)}
+  #skinSw .sl:focus-visible{outline:2px solid var(--wk-fg);outline-offset:2px;border-radius:6px}
+  /* Видов больше двух — листаем по кругу, а не тумблером. */
+  #skinSw .tg.cyc{justify-content:flex-start;gap:9px;padding:10px 14px}
+  #skinSw .cyc .ic{color:var(--ink);opacity:.75;flex:none;display:flex}
+  #skinSw .cyc .t{flex:1;min-width:0;font-size:13.5px;font-weight:600}
+  #skinSw .cyc .t span{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:1px}
+  #skinSw .nextsk{font:inherit;font-size:12.5px;font-weight:600;color:var(--wk-fg);
+    background:none;border:0;padding:4px 2px;cursor:pointer;white-space:nowrap}
+  #skinSw .sw{flex:none;width:40px;height:24px;border-radius:99px;background:var(--track);
+    position:relative;border:0;padding:0;cursor:pointer;transition:background .18s}
+  #skinSw .sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;
+    border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s}
+  #skinSw .sw.on{background:var(--done)}
+  #skinSw .sw.on::after{transform:translateX(16px)}
+  #skinSw .sw:focus-visible{outline:2px solid var(--wk-fg);outline-offset:2px}
+  #skinBody>.skinpart{display:flex;flex-direction:column;gap:10px}
+
+  /* ---------- Что видит сын, а что папа ----------
+     Метку .parent ставит render() по isParent(). Здесь ничего не удаляется:
+     деньги к выдаче, резервные копии и «Сбросить всё» — родительские
+     инструменты, и на экране ребёнка они только мешают. */
+  body:not(.parent) #mOwe,
+  body:not(.parent) #bkNote,
+  body:not(.parent) footer{display:none!important}
+  /* В виде «Смена» наряд уже показывает те же дела с ценами. */
+  body:not(.parent)[data-skin="shift"] #todayPlanBox{display:none}
 </style>
 </head>
 <body>
@@ -1320,12 +1439,18 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
       <button class="tab" data-v="hist"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3.6 12a8.4 8.4 0 1 0 2.5-6"/><path d="M3.2 3.4v4.2h4.2"/><path d="M12 7.6V12l3 1.8"/></svg></span><span class="tx">История</span></button>
     </div>
     <button class="themebtn" id="howBtn" type="button" hidden title="Как это работает" aria-label="Как это работает"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.2 2.4c-.6.2-.9.7-.9 1.3v.5"/><path d="M12 16.8h.01" stroke-width="2.4"/></svg></button>
+    <button class="themebtn more" id="moreBtn" type="button" title="Ещё" aria-label="Ещё"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="2.8"/></svg><span class="dot"></span></button>
     <button class="themebtn" id="themeBtn" title="Тёмная тема" aria-label="Переключить тему"></button>
   </div>
 
+  <!-- Метка «родительский режим включён» стоит над блоком денег, а не внутри:
+       сам блок теперь показывается только на «Сегодня», а знать, что ПИН
+       введён, надо на любой вкладке. -->
+  <div id="parentBar"></div>
+
   <!-- ДЕНЬГИ -->
   <div class="moneybar" id="moneyBar">
-    <div id="parentBar"></div>
+    <div id="debtBox"></div>
     <div id="weekSumBox" hidden></div>
     <div id="pendBox" hidden></div>
     <div id="propBox" hidden></div>
@@ -1335,7 +1460,6 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
     <div class="mowe" id="mOwe"></div>
     <div class="mact">
       <button class="btn ghost" id="achBtn" type="button" hidden><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="14.8" r="5.4"/><path d="M8.4 9.6L5.6 3h12.8l-2.8 6.6"/><path d="M12 12.6l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 14.7l2-.3z" stroke-width="1.2"/></svg> Достижения</button>
-      <button class="btn ghost more" id="moreBtn" type="button" title="Ещё" aria-label="Ещё"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="2.8"/></svg><span class="dot"></span></button>
     </div>
     <div class="bknote" id="bkNote" style="display:none">
       <span class="bi"><svg class="i" viewBox="0 0 24 24"><path d="M12 3.4v10.8M8.2 10.6l3.8 3.9 3.8-3.9"/><path d="M4.2 16.4v2.4a2 2 0 0 0 2 2h11.6a2 2 0 0 0 2-2v-2.4"/></svg></span>
@@ -1392,8 +1516,13 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
       <div class="panel" style="padding:5px 7px"><div id="odRows"></div></div>
     </div>
 
-    <div class="secttl">План на сегодня</div>
-    <div class="panel" style="padding:5px 7px"><div id="todayRows"></div></div>
+    <!-- В виде «Смена» наряд показывает те же дела с теми же ценами,
+         и у сына это был второй список тех же строк. Прячем блок CSS-ом
+         по метке на <body>; разметка и код рендера не меняются. -->
+    <div id="todayPlanBox">
+      <div class="secttl">План на сегодня</div>
+      <div class="panel" style="padding:5px 7px"><div id="todayRows"></div></div>
+    </div>
 
     <button class="foldopen sect2" id="pickOpen" type="button">
       <span>Взять на сегодня</span><span class="cnt" id="pickCount2"></span><span class="arr">›</span>
@@ -1806,7 +1935,10 @@ const isMine=t=>bornAt(t)>0;
 /* Удалённые задачи остаются в массиве с полем del (время удаления).
    Все экраны читают live() — корзина в счётчики и календарь не протекает.
    У задач из старых копий поля del нет, значит они живые. */
-const live=()=>state.tasks.filter(t=>!t.del);
+/* log:true — запись журнала начислений, оставшаяся после повторяемого
+   дела. В каталоге, наряде и списках её быть не должно, а в счёте и
+   в «Истории начислений» — должна: деньги держит именно она. */
+const live=()=>state.tasks.filter(t=>!t.del && !t.log);
 const binned=()=>state.tasks.filter(t=>t.del).sort((a,b)=>b.del-a.del);
 const BIN_DAYS=30;
 function purgeBin(){
@@ -1997,12 +2129,19 @@ function renderMoney(){
   const week=earnedSum(done.filter(t=>t.okAt&&t.okAt>=from));
   const today=earnedSum(done.filter(t=>t.okAt&&iso(new Date(t.okAt))===T));
   const paid=prefs.paidTotal||0;
-  const owed=Math.max(0,all-paid);
+  /* Сначала долг, потом на руки. Пока крышка не отработана, выдавать
+     нечего: всё заработанное гасит её. На руки идёт только излишек
+     сверх 12 000 ₽ — до 15 сентября здесь считалось иначе, и на экране
+     жили сразу две несовместимые модели денег. */
+  const free=Math.max(0,all-DEBT.total);
+  const owed=Math.max(0,free-paid);
   const fmt=n=>n.toLocaleString("ru-RU")+" ₽";
-  $("#mOwe").innerHTML = owed>0
-    ? `Выплачено ${fmt(paid)} · осталось выдать <b>${fmt(owed)}</b>`
-    : (paid>0 ? `Выплачено всё · ${fmt(paid)}` : "Пока ничего не заработано");
+  $("#mOwe").innerHTML = all<DEBT.total
+    ? `Идёт в счёт крышки · осталось <b>${fmt(DEBT.total-all)}</b>`
+    : (owed>0 ? `Выплачено ${fmt(paid)} · осталось выдать <b>${fmt(owed)}</b>`
+              : (paid>0 ? `Выплачено всё · ${fmt(paid)}` : "Долг закрыт — дальше счёт сына"));
   MONEY_OWED=owed;
+  renderDebtHead(all);
   renderParentBar();
   renderWeekSummary();
   renderPending();
@@ -2014,7 +2153,8 @@ function renderMoney(){
 function openPayout(){
   const done=state.tasks.filter(t=>t.done);
   const all=earnedSum(done);
-  const owed=Math.max(0,all-(prefs.paidTotal||0));
+  /* Выдаётся только то, что сверх долга: до 12 000 ₽ заработок гасит крышку. */
+  const owed=Math.max(0,all-DEBT.total-(prefs.paidTotal||0));
   modal((b,close)=>{
     b.innerHTML=`<h4>Выплатить</h4>
       <p>Заработано всего: ${all.toLocaleString("ru-RU")} ₽.
@@ -2077,14 +2217,24 @@ function makeRow(t,{showCat=false}={}){
   /* Причина возврата идёт в ту же строку, где обычно заметка: ребёнок
      читает её там, где дело, а не в отдельном окне, которое не откроет. */
   const bt=backText(t)||propText(t);
-  if(t.note||bt){
+  /* Дело на паузе: сдано недавно и по договору повторяется не каждый день.
+     Написать об этом надо прямо в строке — иначе непонятно, почему галочка
+     не ставится, и это читается как поломка. */
+  const cool=cooldownWord(t);
+  if(t.note||bt||cool){
     n.textContent=t.note||"";
     if(bt){
       const bn=document.createElement("span");
       bn.className="backnote"; bn.textContent=bt;
       n.appendChild(bn);
     }
+    if(cool){
+      const cn=document.createElement("span");
+      cn.className="coolnote"; cn.textContent="Засчитано · "+cool;
+      n.appendChild(cn);
+    }
   } else n.remove();
+  if(cool) row.classList.add("cooling");
   const badge=row.querySelector(".pricebadge");
   const shown=moneyOf(t);
   if(shown>0){ badge.textContent=shown+" ₽"; badge.style.display="inline-block"; badge.title="Изменить цену"; }
@@ -2128,6 +2278,10 @@ function makeRow(t,{showCat=false}={}){
   const toggle=()=>{
     if(t.hold){ tell("Папа ещё не ответил на это предложение. Как согласует — можно будет отмечать.",
       {title:"Пока нельзя"}); return; }
+    if(!t.done && onCooldown(t)){
+      tell("Это дело уже засчитано. По договору оно повторяется раз в "+
+        (repeatDays(t)===7?"неделю":repeatDays(t)===30?"месяц":"четверть")+
+        " — "+cooldownWord(t)+".",{title:"Ещё рано"}); return; }
     t.done=!t.done;
     if(t.done){ t.doneAt=Date.now(); clearBack(t); }
     else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; }
@@ -2470,12 +2624,15 @@ const isPhone=()=>phone.matches;
    при развороте счётчиков .hright переносится на вторую строку, и кнопка
    уехала бы вниз вместе с ним. */
 function placeTheme(){
-  const home=document.querySelector(isPhone()?".hleft":".tabsrow");
+  /* Раньше на телефоне кнопки уезжали в верхнюю строку, к названию
+     вкладки. Шапку убрали 14 сентября — и переезд стал переездом
+     в никуда: луна пропадала с экрана телефона совсем. Вкладок теперь
+     три, а не пять, так что «⋯» и луна помещаются в нижнюю панель
+     рядом с ними. Для «⋯» это важно отдельно: это единственный вход
+     в родительский режим, и папа открывает его с телефона сына. */
+  const home=document.querySelector(".tabsrow");
   if(!home) return;
-  /* «?» ездит вместе с темой по той же причине: в нижней панели
-     телефона пять мест уже заняты вкладками, шестая кнопка туда
-     не влезала и вылезала отдельной плашкой поверх панели. */
-  ["#howBtn","#themeBtn"].forEach(sel=>{
+  ["#moreBtn","#themeBtn"].forEach(sel=>{
     const b=$(sel);
     if(b && b.parentElement!==home) home.appendChild(b);
   });
@@ -2910,6 +3067,9 @@ function render(){
   if(v==="hist") renderHistory();
   document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   document.body.dataset.view=v;      // по нему прячется кнопка «+» на «Направлениях»
+  /* По этой метке CSS решает, что показывать: деньги к выдаче, заметка
+     о резервной копии и футер с «Сбросить всё» сыну не адресованы. */
+  document.body.classList.toggle("parent",isParent());
   renderTitle(v);
   syncCatSelect();
   if(v==="today") renderToday();
@@ -3245,7 +3405,13 @@ async function init(){
   await loadSnaps();
   dailySnap();
 
-  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.view=b.dataset.v;render()});
+  /* При переключении вкладки возвращаемся наверх. Без этого страница
+     оставалась прокрученной на прежнем месте, новый экран открывался
+     где-то выше — и со стороны выглядело, будто нажатие не сработало. */
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+    state.view=b.dataset.v; render();
+    try{ window.scrollTo(0,0); }catch(e){}
+  });
   /* Вкладка «Направления» убрана: править их в приложении больше нельзя,
      состав приходит из договора. Если вид остался в сохранённом состоянии
      со старой версии — уводим на «Сегодня», а не в пустой экран. */
@@ -3728,7 +3894,9 @@ function openMore(){
       <div class="mrow" style="margin-top:0;padding-top:0;border-top:0">
         <button class="mbtn" id="moPay" type="button"${MONEY_OWED>0?"":" disabled"}>
           <svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><circle cx="12" cy="12" r="2.7"/><path d="M6.2 12h.01M17.8 12h.01" stroke-width="2.4"/></svg>
-          <div>Выплатить<span>${isParent()?(MONEY_OWED>0?"к выдаче "+fmt(MONEY_OWED):"выдавать пока нечего"):"только папа"}</span></div>
+          <div>Выплатить<span>${!isParent()?"только папа"
+            :(MONEY_OWED>0?"к выдаче "+fmt(MONEY_OWED)
+              :"пока всё идёт в счёт крышки")}</span></div>
         </button>
         <button class="mbtn" id="moSync" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M20.2 12.4a8.2 8.2 0 0 1-13.9 5.4M3.8 11.6a8.2 8.2 0 0 1 13.9-5.4"/><path d="M3.4 19.4v-4.2h4.2M20.6 4.6v4.2h-4.2"/></svg>
@@ -4040,12 +4208,17 @@ function coinFly(amount, fromEl){
 const DEBT = {
   total: 12000,
   hold: 1200,               /* к 20 сентября меньше — телефон на хранение */
+  /* gift — что именно даётся за точку. До 15 сентября этих строк в приложении
+     не было: сын видел только название и сумму и не знал, ради чего старается.
+     Формулировки взяты из макета «Идеи для сына» от 10 сентября.
+     У пятой точки награда ещё не придумана — пустая строка, и приложение
+     про неё молчит, а не выдумывает. */
   points: [
-    {date:"2026-09-20", sum:2400,  name:"Твой вечер"},
-    {date:"2026-09-27", sum:4800,  name:"Твоя пятница"},
-    {date:"2026-10-04", sum:7200,  name:"День вдвоём"},
-    {date:"2026-10-11", sum:9600,  name:"Поездка и премия"},
-    {date:"2026-10-18", sum:12000, name:"Свобода и событие"}
+    {date:"2026-09-20", sum:2400,  name:"Твой вечер",        gift:"фильм и меню на твой выбор"},
+    {date:"2026-09-27", sum:4800,  name:"Твоя пятница",      gift:"отбой на час позже"},
+    {date:"2026-10-04", sum:7200,  name:"День вдвоём",       gift:"маршрут выбираешь ты"},
+    {date:"2026-10-11", sum:9600,  name:"Поездка и премия",  gift:"+1 500 ₽ сверху"},
+    {date:"2026-10-18", sum:12000, name:"Свобода и событие", gift:""}
   ]
 };
 /* Звания живут отдельно от контрольных точек договора: точки — это
@@ -4082,22 +4255,10 @@ function levelOf(all){
   const pct = nxt ? (all-cur.at)/(nxt.at-cur.at)*100 : 100;
   return {i:i+1, cur, nxt, pct:Math.max(0,Math.min(100,pct))};
 }
-/* Подсказки «что взять»: сначала просроченное, потом сегодняшнее,
-   потом по важности, и внутри — дороже вперёд, чтобы до ближайшей
-   точки добраться меньшим числом дел. */
-function shiftJobs(n){
-  const T=todayISO();
-  const rank=t=>{
-    let r=0;
-    if(t.date && t.date<T) r-=300;
-    else if(t.date===T) r-=200;
-    r += ({A:-60,B:-30,C:0})[t.prio] || 0;
-    return r;
-  };
-  return live().filter(t=>!t.done && moneyOf(t)>0 && suggestable(t))
-    .sort((a,b)=> rank(a)-rank(b) || moneyOf(b)-moneyOf(a))
-    .slice(0, n||4);
-}
+/* shiftJobs() жила здесь до 15 сентября: она считала, сколькими делами
+   можно закрыть ближайшую точку, для подсказки «Хватит трёх дел».
+   Подсказку заменила шапка долга, и функцию больше никто не звал —
+   убрана, чтобы не висела мёртвым кодом. История — в ПЕРЕДАЧА.md. */
 /* Наряд на день: сначала то, что реально назначено на сегодня,
    а если назначено мало — добираем подсказками, чтобы экран не пустовал. */
 /* Наряд на день.
@@ -4308,8 +4469,11 @@ const pendingList = () => live().filter(t=>t.done && !t.ok);
 function acceptTask(t,fromEl){
   if(t.ok) return;
   t.ok=true; t.okAt=Date.now(); t.earned=moneyOf(t);
+  const got=t.earned;
+  /* Премию (разовое начисление) не возвращаем: она на то и разовая. */
+  if(!isOne(t)) reopenTask(t);
   save(); render();
-  coinFly(t.earned, fromEl||document.getElementById("skinBody"));
+  coinFly(got, fromEl||document.getElementById("skinBody"));
 }
 /* Причины возврата. Список короткий нарочно: выбор из трёх — это секунда,
    а свободное поле под ним даёт сказать по делу. Молчаливый возврат
@@ -4507,6 +4671,42 @@ function renderWeekSummary(){
   box.appendChild(el); box.hidden=false;
 }
 
+/* ---------- Шапка долга ----------
+   До 15 сентября чисел 12 000 и остатка на экране сына не было вовсе:
+   про долг говорила только красная плашка про залог да нижняя ступенька
+   лестницы в «Пути». Теперь сверху всегда видно, сколько заработал,
+   сколько осталось и когда ближайший срок.
+
+   Когда крышка отработана, вторая цифра меняет смысл: вместо «Осталось»
+   становится «На счету» — это уже его деньги, а не долг. */
+function renderDebtHead(all){
+  const box=$("#debtBox"); if(!box) return;
+  const left=Math.max(0,DEBT.total-all), over=Math.max(0,all-DEBT.total);
+  const nx=nextPoint(all);
+  const steps=DEBT.points.map((p,i)=>{
+    const done=all>=p.sum, now=!done && nx && nx.p.date===p.date;
+    return `<div class="st ${done?"done":(now?"now":"")}">
+      <i>${done?"✓":i+1}</i>${dbtDate(p.date).replace(" ","<br>")}</div>`;
+  }).join("");
+  const head = left>0
+    ? `<div><div class="k">Заработал</div><div class="n g">${rub(all)} ₽</div></div>
+       <div><div class="k">Осталось</div><div class="n">${rub(left)} ₽</div></div>`
+    : `<div><div class="k">Долг закрыт</div><div class="n g">0 ₽</div></div>
+       <div><div class="k">На счету</div><div class="n g">${rub(over)} ₽</div></div>`;
+  const when = nx
+    ? (nx.days>0 ? `${dbtDate(nx.p.date)} · ${nx.days} ${plural(nx.days,"день","дня","дней")} · это ${rub(nx.perDay)} ₽ в день`
+                 : `${dbtDate(nx.p.date)} · сегодня последний день`)
+    : "";
+  const tail = nx
+    ? `<div class="row"><div class="t">Ближайшая точка — «${nx.p.name}»${
+         nx.p.gift?`<em class="gift">${nx.p.gift}</em>`:""}<span>${when}</span></div>
+       <div class="v due">${rub(nx.need)} ₽</div></div>`
+    : `<div class="row"><div class="t">Крышка отработана<span>дальше всё заработанное твоё</span></div>
+       <div class="v ok">${rub(over)} ₽</div></div>`;
+  box.innerHTML=`<div class="dh"><div class="two">${head}</div>
+    <div class="steps">${steps}</div><div class="sep"></div>${tail}</div>`;
+}
+
 function renderParentBar(){
   const box=$("#parentBar"); if(!box) return;
   if(!isParent()){ box.innerHTML=""; return; }
@@ -4592,7 +4792,46 @@ const NO_SUGGEST=new Set([
   "Собрал модель, схему или робота по инструкции",
   "Собрал портфель с вечера — 5 дней подряд",
 ]);
+/* ---------- Как часто дело можно сдавать ----------
+   До 15 сентября дело закрывалось навсегда: отметил, папа принял —
+   строка больше не работает. Весь каталог по разу давал 17 500 ₽
+   при долге 12 000, то есть расплатиться можно было, только выполнив
+   почти весь список целиком, включая «Призовое место» и олимпиаду.
+   Мытьё посуды приносило 60 ₽ один раз за всю жизнь договора.
+
+   Теперь после приёмки дело возвращается в список. Как часто его можно
+   сдавать снова, берём из единицы измерения — она и так лежит в каталоге
+   в поле note и приходит из data.py: «неделя», «месяц», «четверть».
+   Пусто — значит «раз», и повторять можно хоть каждый день. */
+const REPEAT_DAYS={"неделя":7,"месяц":30,"четверть":90};
+const repeatDays=t=>REPEAT_DAYS[(t.note||"").trim()]||0;
+/* Сколько дней ещё ждать. 0 — можно прямо сейчас. */
+function cooldownLeft(t){
+  const d=repeatDays(t);
+  if(!d || !t.lastOk) return 0;
+  const left=Math.ceil((t.lastOk + d*864e5 - Date.now())/864e5);
+  return left>0?left:0;
+}
+const onCooldown=t=>cooldownLeft(t)>0;
+function cooldownWord(t){
+  const n=cooldownLeft(t);
+  if(!n) return "";
+  return n===1 ? "снова завтра" : "снова через "+n+" "+plural(n,"день","дня","дней");
+}
+/* Дело сдано и принято — начисление уходит отдельной записью в журнал,
+   а сама строка возвращается в список чистой. Так деньги остаются
+   в счёте навсегда, а дело можно сделать ещё раз. */
+function reopenTask(t){
+  state.tasks.push({id:uid(), cat:t.cat, text:t.text, note:t.note||"",
+    prio:t.prio||"B", price:t.price, done:true, ok:true,
+    doneAt:t.doneAt||t.okAt, okAt:t.okAt, earned:t.earned, log:true, of:t.id});
+  t.lastOk=t.okAt;
+  delete t.done; delete t.doneAt; delete t.ok; delete t.okAt;
+  delete t.earned; delete t.date; delete t.back;
+}
+
 function suggestable(t){
+  if(onCooldown(t)) return false;        /* ещё не отдохнуло */
   if(t.noSuggest===true) return false;
   if(t.noSuggest===false) return true;   /* руками включили обратно */
   return !NO_SUGGEST.has(t.text);
@@ -4636,13 +4875,25 @@ function recentOps(n){
   return state.tasks.filter(t=>t.ok&&t.okAt)
     .sort((a,b)=>b.okAt-a.okAt).slice(0,n||5);
 }
+/* Красная плашка про залог висела все семь дней подряд и от этого
+   перестала читаться — как сирена, которая звучит всегда. Теперь она
+   появляется, только когда есть о чём предупреждать: за три дня до
+   контрольной точки — или раньше, если по темпу последней недели видно,
+   что к сроку не дотянуть. Текст не менялся. */
 function warnHtml(all){
   const T=todayISO();
   const nx=nextPoint(all);
   if(!nx) return `<div class="dbtdone">Все пять точек взяты. Договор выполнен — рвём.</div>`;
-  if(nx.p.sum===2400 && all<DEBT.hold && daysBetween(T,"2026-09-20")>=0)
-    return `<div class="dbtwarn">До 20 сентября нужно закрыть хотя бы ${dbtFmt(DEBT.hold)}, иначе телефон уезжает к папе на хранение до ${dbtFmt(2400)}.</div>`;
-  return "";
+  /* Залог — правило только первой точки: после 20 сентября предупреждать не о чем. */
+  if(nx.p.sum!==2400 || all>=DEBT.hold) return "";
+  const left=daysBetween(T,"2026-09-20");
+  if(left<0) return "";
+  /* Темп: сколько в день выходит по факту за последнюю неделю. */
+  const from=Date.now()-7*864e5;
+  const pace=earnedSum(state.tasks.filter(t=>t.ok&&t.okAt&&t.okAt>=from))/7;
+  const behind = left<=0 || pace*left < (DEBT.hold-all);
+  if(left>3 && !behind) return "";
+  return `<div class="dbtwarn">До 20 сентября нужно закрыть хотя бы ${dbtFmt(DEBT.hold)}, иначе телефон уезжает к папе на хранение до ${dbtFmt(2400)}.</div>`;
 }
 function jarHtml(all){
   const pct=Math.min(100, all/DEBT.total*100);
@@ -4661,7 +4912,8 @@ function stationsHtml(all){
       : cls==="now" ? `${dbtDate(p.date)} · не хватает ${rub(p.sum-all)} ₽`
       : dbtDate(p.date);
     return `<div class="stn ${cls}"><div class="dot">${done?"✓":i+1}</div>
-      <div class="t"><b>${p.name}</b>${sub}</div><div class="s">${rub(p.sum)}</div></div>`;
+      <div class="t"><b>${p.name}</b>${p.gift?`<em>${p.gift}</em>`:""}${sub}</div>
+      <div class="s">${rub(p.sum)}</div></div>`;
   }).join("");
 }
 /* Названия дел пишет человек — они всегда попадают на экран через
@@ -4706,8 +4958,7 @@ function skinWalletHtml(m){
         <div class="r">из ${rub(DEBT.total)} ₽</div>
         ${goal}
       </div></div></div>
-    <div class="blk"><div class="seclab">Последние поступления</div><div class="oplist"></div></div>
-    ${warnHtml(m.all)}`;
+    <div class="blk"><div class="seclab">Последние поступления</div><div class="oplist"></div></div>`;
 }
 function skinWalletFill(box){
   const list=box.querySelector(".oplist"); if(!list) return;
@@ -4731,14 +4982,9 @@ function skinShiftHtml(m){
   const restPlan=plan.filter(t=>!t.done);
   const pendSum=sumOf(pendPlan), restSum=sumOf(restPlan);
   const full=m.today + pendSum + restSum;
-  let hint="";
-  if(nx){
-    const jobs=shiftJobs(6); let acc=0,k=0;
-    for(const t of jobs){ acc+=moneyOf(t); k++; if(acc>=nx.need) break; }
-    hint = acc>=nx.need
-      ? `<div class="hintbox">До награды «${nx.p.name}» — <b>${rub(nx.need)} ₽</b>. Хватит ${["одного дела","двух дел","трёх дел","четырёх дел"][k-1]||(k+" дел")}.</div>`
-      : `<div class="hintbox">До награды «${nx.p.name}» — <b>${rub(nx.need)} ₽</b>. За один день не закрыть, но начать можно сегодня.</div>`;
-  }
+  /* Подсказка «До награды … — столько-то ₽» убрана 15 сентября: ровно это
+     написано в шапке долга — крупнее, с датой и нужным темпом. Оставлена
+     только заметка про выходной, её в шапке нет. */
   const D=["воскресенье","понедельник","вторник","среду","четверг","пятницу","субботу"][new Date().getDay()];
   const wkNote = isWeekend()
     ? `<div class="hintbox" style="background:var(--wk-bg);color:var(--wk-fg)">Выходной — в наряде есть крупное дело. За день его реально сделать, и это сразу несколько дней нормы.</div>`
@@ -4752,13 +4998,12 @@ function skinShiftHtml(m){
         <div><span>на проверке</span><span>${rub(pendSum)} ₽</span></div>
         <div><span>осталось в наряде</span><span>${rub(restSum)} ₽</span></div>
       </div>`:""}
-      ${hint}${wkNote}
+      ${wkNote}
     </div>
     <div class="blk"><div class="seclab">Наряд на ${D}</div><div class="ordlist"></div>
-      <div class="total"><span class="l">Всего заработано</span><span class="v">${rub(m.all)} ₽</span></div>
+
     </div>
-    <button class="linkbtn" id="skMore" type="button">Добрать дел из общего списка</button>
-    ${warnHtml(m.all)}`;
+    <button class="linkbtn" id="skMore" type="button">Добрать дел из общего списка</button>`;
 }
 function skinShiftFill(box){
   const list=box.querySelector(".ordlist");
@@ -4772,6 +5017,8 @@ function skinShiftFill(box){
       cb.type="button"; cb.className="cb"; cb.textContent=t.done?"✓":"";
       cb.setAttribute("aria-label",t.done?"Снять отметку":"Отметить сделанным");
       cb.onclick=()=>{
+        if(!t.done && onCooldown(t)){
+          tell("Это дело уже засчитано — "+cooldownWord(t)+".",{title:"Ещё рано"}); return; }
         t.done=!t.done;
         if(t.done){ t.doneAt=Date.now(); clearBack(t); }
         else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; }
@@ -4817,8 +5064,7 @@ function skinPathHtml(m){
       <div class="nrow"><span>${rub(m.all)} ₽ заработано</span><span>${L.nxt?rub(L.nxt.at)+" ₽":""}</span></div>
       <div class="nsep"></div>
       ${stationsHtml(m.all)}
-    </div>
-    ${warnHtml(m.all)}`;
+    </div>`;
 }
 
 /* ===== вид 4: деловой ===== */
@@ -4849,8 +5095,7 @@ function skinLedgerHtml(m){
         ${nx?`<div class="r debt"><span>ДО ТОЧКИ</span><span>${rub(nx.need)} ₽</span></div>`
             :`<div class="r debt"><span>ДОЛГ</span><span>0 ₽</span></div>`}
       </div>
-    </div>
-    ${warnHtml(m.all)}`;
+    </div>`;
 }
 function skinLedgerFill(box){
   const list=box.querySelector(".elines"); if(!list) return;
@@ -4884,32 +5129,68 @@ const SKINS=[
   {id:"path",   n:"Путь",      t:"Уровень и дорожка наград",
    ic:'<svg class="i" viewBox="0 0 24 24"><path d="M6.5 21V4.2"/><path d="M6.5 5.2h9.8l-1.9 3 1.9 3H6.5"/></svg>', html:skinPathHtml}
 ];
+/* ---------- Какой вид показывать ----------
+   История в трёх ходах: был сегмент «один из двух» выше денег сына;
+   унесли в меню «⋯» — отец отклонил; сделали два независимых тумблера,
+   можно было включить оба — отец попросил один. Итог: один тумблер,
+   два названия по краям, вид на экране всегда один. */
+function skinCur(){
+  const ids=SKINS.map(s=>s.id);
+  /* Переезд со старых настроек: сначала хранился один вид (prefs.skin),
+     потом короткое время список (prefs.skins). */
+  let id = prefs.skin || (Array.isArray(prefs.skins) ? prefs.skins[0] : null);
+  return ids.indexOf(id)>=0 ? id : ids[0];
+}
+function setSkin(id){
+  if(!SKINS.some(s=>s.id===id)) return;
+  prefs.skin=id;
+  delete prefs.skins;
+  savePrefs(); render();
+}
 function renderSkin(m){
   const box=$("#skinBody"); if(!box) return;
-  /* У кого в настройках остался «Кошелёк» — молча переводим на первый
-     из оставшихся видов, а не падаем на несуществующем. */
-  const cur=SKINS.some(x=>x.id===prefs.skin)?prefs.skin:SKINS[0].id;
+  const cur=skinCur();
+  /* По этой метке CSS убирает дубли: лестницу из шапки долга, когда выбран
+     «Путь», и «План на сегодня» у сына, когда выбрана «Смена». */
+  document.body.dataset.skin=cur;
+
   const sw=$("#skinSw");
   if(sw){
     /* Переключатель имеет смысл от двух видов. Останется один — исчезнет сам. */
     if(SKINS.length<2){ sw.innerHTML=""; }
-    else{
-      sw.innerHTML='<span class="cap">Вид экрана</span><div class="btns"></div>';
-      const row=sw.querySelector(".btns");
-      SKINS.forEach(s=>{
-        const btn=document.createElement("button");
-        btn.type="button";
-        btn.className = s.id===cur ? "on" : "";
-        btn.title=s.t;
-        btn.innerHTML=s.ic+"<span>"+s.n+"</span>";
-        btn.onclick=()=>{ prefs.skin=s.id; savePrefs(); render(); };
-        row.appendChild(btn);
-      });
+    else if(SKINS.length===2){
+      /* Два вида — один тумблер, название слева и справа. Нажать можно
+         и по тумблеру, и по любому из названий. */
+      const right = SKINS[1].id===cur;
+      sw.innerHTML='<div class="tg">'+
+        '<button type="button" class="sl'+(right?"":" on")+'" data-go="'+SKINS[0].id+'">'+SKINS[0].n+'</button>'+
+        '<button type="button" class="sw'+(right?" on":"")+'" role="switch" aria-checked="'+(right?"true":"false")+'"'+
+          ' aria-label="Вид экрана: '+(right?SKINS[1].n:SKINS[0].n)+'"></button>'+
+        '<button type="button" class="sl'+(right?" on":"")+'" data-go="'+SKINS[1].id+'">'+SKINS[1].n+'</button>'+
+        '</div>';
+      sw.querySelector(".sw").onclick=()=>setSkin(right?SKINS[0].id:SKINS[1].id);
+      sw.querySelectorAll("[data-go]").forEach(b=>{ b.onclick=()=>setSkin(b.dataset.go); });
+    }else{
+      /* Видов больше двух — тумблер уже не про «или-или»: листаем по кругу. */
+      const k=SKINS.findIndex(s=>s.id===cur), nx=SKINS[(k+1)%SKINS.length];
+      sw.innerHTML='<div class="tg cyc"><span class="ic">'+SKINS[k].ic+'</span>'+
+        '<div class="t">'+SKINS[k].n+'<span>'+SKINS[k].t+'</span></div>'+
+        '<button type="button" class="nextsk">'+nx.n+' ›</button></div>';
+      sw.querySelector(".nextsk").onclick=()=>setSkin(nx.id);
     }
   }
+
+  box.innerHTML="";
   const sk=SKINS.find(x=>x.id===cur);
-  box.innerHTML=sk.html(m);
-  if(sk.fill) sk.fill(box,m);
+  const part=document.createElement("div");
+  part.className="skinpart";
+  part.innerHTML=sk.html(m);
+  box.appendChild(part);
+  if(sk.fill) sk.fill(part,m);
+  /* Плашка про залог рисуется здесь, а не внутри вида: так её текст
+     не приходится повторять в каждом шаблоне. */
+  const w=warnHtml(m.all);
+  if(w){ const wb=document.createElement("div"); wb.innerHTML=w; box.appendChild(wb); }
 }
 
 /* ---------- Достижения ----------
