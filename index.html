@@ -1342,6 +1342,33 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .pen .act button{font:inherit;font-size:12.5px;font-weight:600;border-radius:9px;
     padding:8px 13px;cursor:pointer;border:1px solid var(--prA-fg);
     background:transparent;color:var(--prA-fg)}
+  /* ---------- Спринт ----------
+     «Осталось 770 ₽» — это приговор. «Вот пять дел, и ты успеваешь» — план. */
+  .spr{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:15px 16px 14px;margin-bottom:12px}
+  .spr .lab{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--faint);font-weight:700}
+  .spr .big{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;
+    color:var(--ink);margin-top:2px}
+  .spr .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .spr .verdict{font-size:13px;font-weight:600;margin:11px 0 3px}
+  .spr .verdict.ok{color:var(--done)}
+  .spr .verdict.no{color:var(--prA-fg)}
+  .spr .jobs{margin-top:6px}
+  .spr .job{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+    padding:7px 0;border-bottom:1px solid var(--soft2);font-size:13.5px}
+  .spr .job:last-child{border-bottom:0}
+  .spr .job .d{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .spr .job .p{font-family:var(--display);font-weight:700;white-space:nowrap}
+  .spr .tot{display:flex;justify-content:space-between;font-size:13.5px;
+    border-top:1px solid var(--edge);margin-top:8px;padding-top:8px}
+  .spr .tot b{font-family:var(--display)}
+  .spr .take{display:block;width:100%;margin-top:12px;font:inherit;font-size:15px;
+    font-weight:700;border:0;border-radius:12px;padding:13px;cursor:pointer;
+    background:var(--ink);color:var(--onbright)}
+  .spr .taken{margin-top:11px;padding:10px 12px;border-radius:10px;
+    background:var(--good-bg);color:var(--good-fg);font-size:13px;font-weight:600}
+
   /* Последствие не только написано, но и применено: эти блоки закрыты,
      пока оно действует. Ничего не удаляется — вернётся, когда снимут. */
   body[data-pen="noTomorrow"] #tmwBox,
@@ -1402,12 +1429,13 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   #moneyBar{display:flex;flex-direction:column}
   #penBox    {order:-2}
   #debtBox   {order:-1}
-  #skinSw    {order:0}
-  #skinBody  {order:1}
-  #pendBox   {order:2}
-  #propBox   {order:3}
-  #tmwBox    {order:4}
-  #weekSumBox{order:5}
+  #sprintBox {order:0}
+  #skinSw    {order:1}
+  #skinBody  {order:2}
+  #pendBox   {order:3}
+  #propBox   {order:4}
+  #tmwBox    {order:5}
+  #weekSumBox{order:6}
   #mOwe      {order:7}
   .mact      {order:8}
   #bkNote    {order:9}
@@ -1501,6 +1529,7 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   <div class="moneybar" id="moneyBar">
     <div id="penBox"></div>
     <div id="debtBox"></div>
+    <div id="sprintBox"></div>
     <div id="weekSumBox" hidden></div>
     <div id="pendBox" hidden></div>
     <div id="propBox" hidden></div>
@@ -2193,6 +2222,7 @@ function renderMoney(){
   MONEY_OWED=owed;
   renderPenalty();
   renderDebtHead(all);
+  renderSprint();
   renderParentBar();
   renderWeekSummary();
   renderPending();
@@ -4076,6 +4106,7 @@ function syncPack(){
     /* Последствие ставит папа со своего телефона — сын должен увидеть его
        у себя, иначе правило существует только на словах. */
     penalty:prefs.penalty||null,
+    sprint:prefs.sprint||null,
     /* ПИН по сети больше не ездит. Раньше отправлялся специально — чтобы
        доехать до телефона сына и папа мог войти там в родительский режим.
        Но база открытая: кто знает код семьи, тот читал ПИН строкой. Теперь
@@ -4125,6 +4156,7 @@ function syncApply(d){
     if(typeof d.weekGoalRub==="number") prefs.weekGoalRub=d.weekGoalRub;
     /* Входящий ПИН игнорируем: он локальный и приезжать не должен. */
     if("penalty" in d) { if(d.penalty) prefs.penalty=d.penalty; else delete prefs.penalty; }
+    if("sprint" in d) { if(d.sprint) prefs.sprint=d.sprint; else delete prefs.sprint; }
     if(typeof d.wonWeek==="string") prefs.wonWeek=d.wonWeek;
     save(); savePrefs();
   } finally { SYNC.applying=false; }
@@ -4391,6 +4423,162 @@ function levelOf(all){
    Сам режим включается на устройстве и живёт до выключения: на
    папином телефоне его можно не выключать вовсе, на детском он
    просто никогда не включается. */
+/* ---------- Спринт до контрольной точки ----------
+   Идея из заметки отца от 11 сентября. Вместо «осталось 770 ₽» — набор дел
+   ровно под нехватку и одна кнопка, чтобы взять его целиком.
+
+   Четыре вещи, которых в заметке не было и которые пришлось додумать:
+
+   1. Набор должен быть посильным. В исходном примере на выходные стояли
+      балкон, мебель, антресоли, санузел и пылесос — два полных рабочих дня
+      для одиннадцатилетнего. Публично взять такое и не сделать хуже, чем
+      не брать вовсе. Поэтому потолок цены и лимит дел в день.
+   2. Спринт заменяет красную плашку, а не соседствует с ней. Триггер у них
+      один и тот же; плашка — тревога без выхода, спринт и есть выход.
+   3. Если даже всего доступного не хватает — так и написано. Один раз
+      соврав «этого хватит ровно», экран перестанут читать.
+   4. Пометки «с папой» в каталоге нет, поэтому её и не обещаем.
+
+   Первый вариант отбора смотрел на цену — и собрал набор, в котором стояли
+   «Участие в соревновании» и «Личный рекорд». Цена оказалась не тем признаком:
+   дело в каталоге бывает трёх сортов, и планировать можно только один.
+
+     событие   — «Призовое место», «Пятёрка за контрольную», «Участие
+                 в соревновании». Случается или нет; поставить на четверг нельзя.
+     длинное   — «Неделя без пропусков», «Вёл конспект всю четверть».
+                 Набегает само за 7–90 дней; в пятидневный спринт не влезает.
+     решение   — помыть санузел, приготовить ужин, разобрать шкаф.
+                 Зависит только от него и закрывается в назначенный день.
+
+   Спринт берёт только третий сорт. Признака «сорт» в каталоге нет, поэтому
+   он выводится из того, что есть: бытовые категории плюс отсутствие длинного
+   повтора. Дальше — SPRINT_SKIP, список по тексту, как NO_SUGGEST: дела,
+   которые проходят фильтр по категории, но назначать их за сына нельзя.
+   Основания два. Событие — сначала нужны гости, сначала нужна посылка.
+   И дело, которое он должен выбрать сам: «Собрать мебель вместе с папой»
+   стоит дороже всех в быту и заходило бы в каждый спринт первым, а на деле
+   требует и мебели, и папиного вечера. Из каталога оно никуда не делось —
+   сын берёт его кнопкой «Взять на сегодня», когда сам решит и договорится.
+   Когда в data.py появится честный признак, список уйдёт. */
+const SPRINT_CATS=new Set(["c1","c2","c3","c4","c5"]);   /* делается руками, за день */
+const SPRINT_LONG=new Set(["неделя","месяц","четверть","книга","курс"]);
+const SPRINT_SKIP=new Set([
+  "Помыть посуду после гостей — большая партия",   /* сначала нужны гости */
+  "Подготовить продукты к приходу гостей",         /* и здесь тоже */
+  "Забрать посылку из пункта выдачи",              /* и сначала нужна посылка */
+  "Собрать мебель по инструкции вместе с папой"    /* это он выбирает сам */
+]);
+const SPRINT_MAX_PRICE=450;   /* страховка, если в быт попадёт что-то крупное */
+const SPRINT_PER_DAY=3;       /* больше трёх дел в день — это уже аврал */
+const SPRINT_SHOW_DAYS=3;     /* за сколько дней до точки показывать */
+const sprintable=t=>SPRINT_CATS.has(t.cat)
+  && !SPRINT_LONG.has((t.note||"").trim())
+  && !SPRINT_SKIP.has(t.text);
+
+function earnedAll(){ return earnedSum(state.tasks.filter(t=>t.done)); }
+/* Успевает ли по темпу последней недели. */
+function behindPace(need,days){
+  if(days<=0) return true;
+  const from=Date.now()-7*864e5;
+  const pace=earnedSum(state.tasks.filter(t=>t.ok&&t.okAt&&t.okAt>=from))/7;
+  return pace*days < need;
+}
+function sprintPlan(){
+  const all=earnedAll(), nx=nextPoint(all);
+  if(!nx || nx.need<=0) return null;
+  const days=Math.max(1,nx.days+1);            /* считая сегодня */
+  if(nx.days>SPRINT_SHOW_DAYS && !behindPace(nx.need,nx.days)) return null;
+  const cap=days*SPRINT_PER_DAY;
+  const pool=live()
+    .filter(t=>!t.done && !t.hold && !isOne(t) && !onCooldown(t) && sprintable(t))
+    .filter(t=>moneyOf(t)>0 && moneyOf(t)<=SPRINT_MAX_PRICE)
+    .sort((a,b)=>moneyOf(b)-moneyOf(a));
+  const pick=[]; let sum=0;
+  for(const t of pool){
+    if(pick.length>=cap) break;
+    pick.push(t); sum+=moneyOf(t);
+    if(sum>=nx.need) break;
+  }
+  /* Пустой набор — не спринт. «0 дел» и кнопка «Беру спринт» под ней
+     выглядели как поломка; когда предлагать нечего, блок молчит и слово
+     снова берёт обычная плашка. */
+  if(!pick.length) return null;
+  /* Раскидываем по дням по кругу, а не блоками. Блоками сортировка по
+     убыванию сгружала всё тяжёлое в первый день: мебель, ужин и плинтусы
+     разом. По кругу крупное расходится по разным дням. */
+  const T=new Date(todayISO()+"T00:00:00");
+  pick.forEach((t,i)=>{
+    const d=new Date(T); d.setDate(d.getDate()+(i%days));
+    t._day=iso(d);
+  });
+  pick.sort((a,b)=>a._day<b._day?-1:a._day>b._day?1:moneyOf(b)-moneyOf(a));
+  return {nx, days, pick, sum, enough:sum>=nx.need, cap, pool:pool.length};
+}
+function sprintTaken(){
+  const s=prefs.sprint;
+  if(!s||!s.point) return null;
+  const nx=nextPoint(earnedAll());
+  if(!nx || nx.p.date!==s.point){ delete prefs.sprint; savePrefs(); return null; }
+  return s;
+}
+function sprintTake(pl){
+  pl.pick.forEach(t=>{ t.date=t._day; });
+  prefs.sprint={point:pl.nx.p.date, at:Date.now(), n:pl.pick.length, sum:pl.sum,
+                ids:pl.pick.map(t=>t.id)};
+  savePrefs(); save(); render();
+}
+function renderSprint(){
+  const box=$("#sprintBox"); if(!box) return;
+  box.innerHTML="";
+  /* Взятый спринт показываем до конца, даже если по темпу он перестал
+     быть нужным. Сын нажал кнопку и взял обязательство — блок не имеет
+     права исчезнуть у него из-под рук, пока точка не пройдена. */
+  const took=sprintTaken();
+  const pl=sprintPlan();
+  if(!took && !pl) return;
+  const el=document.createElement("div");
+  el.className="spr";
+  const dayName=d=>{
+    const D=["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+    const x=new Date(d+"T00:00:00");
+    return d===todayISO()?"сегодня":D[x.getDay()];
+  };
+  /* Сумму и срок уже назвала шапка долга ровно на экран выше. Спринт
+     повторять их не должен: две одинаковые цифры подряд читаются как сбой.
+     Новое здесь — сколько это дел. */
+  const nJobs=n=>n+" "+plural(n,"дело","дела","дел");
+  if(took){
+    /* После взятия сумма и срок снова в шапке, поэтому здесь — движение:
+       сколько из взятого уже сделано. «Осталось набрать 770 ₽» зелёной
+       плашкой читалось как похвала за то, чего ещё не случилось. */
+    const ids=new Set(took.ids||[]);
+    const mine=state.tasks.filter(t=>ids.has(t.id));
+    const doneN=mine.filter(t=>t.done).length;
+    el.innerHTML=`<div class="lab">Спринт до ${dbtDate(took.point)}</div>
+      <div class="big">${doneN} из ${took.n}</div>
+      <div class="sub">${doneN===took.n?"всё сделано, ждём приёмку"
+        :"дела стоят в наряде по дням · на "+rub(took.sum)+" ₽"}</div>
+      ${doneN?`<div class="taken">Сделано на ${rub(earnedSum(mine.filter(t=>t.done)))} ₽</div>`:""}`;
+    box.appendChild(el);
+    return;
+  }
+  const perDay=Math.ceil(pl.pick.length/pl.days);
+  const rows=pl.pick.map(t=>
+    `<div class="job"><div>${t.text}<span class="d">${dayName(t._day)}</span></div>
+      <div class="p">${rub(moneyOf(t))} ₽</div></div>`).join("");
+  el.innerHTML=`<div class="lab">Как успеть к ${dbtDate(pl.nx.p.date)}</div>
+    <div class="big">${nJobs(pl.pick.length)}</div>
+    <div class="sub">${perDay>1?"по "+perDay+" в день":"по одному в день"} · выбраны из каталога</div>
+    ${pl.enough?"":`<div class="verdict no">Даже если сделать всё это, не хватит ${rub(pl.nx.need-pl.sum)} ₽</div>`}
+    <div class="jobs">${rows}</div>
+    <div class="tot"><span>Выйдет</span><b>${rub(pl.sum)} ₽</b></div>`;
+  const btn=document.createElement("button");
+  btn.type="button"; btn.className="take"; btn.textContent="Беру спринт";
+  btn.onclick=()=>sprintTake(pl);
+  el.appendChild(btn);
+  box.appendChild(el);
+}
+
 /* ---------- Правила и потери ----------
    Не наказание за проступок, а правило, написанное заранее: ребёнок видит
    список до того, как нарушил, а не после. У каждого последствия есть выход —
@@ -5498,8 +5686,10 @@ function renderSkin(m){
   box.appendChild(part);
   if(sk.fill) sk.fill(part,m);
   /* Плашка про залог рисуется здесь, а не внутри вида: так её текст
-     не приходится повторять в каждом шаблоне. */
-  const w=warnHtml(m.all);
+     не приходится повторять в каждом шаблоне. И молчит, когда показан
+     спринт: триггер у них один, но плашка — тревога, а спринт — выход.
+     Два сообщения об одном и том же друг друга глушат. */
+  const w=(sprintTaken()||sprintPlan())?"":warnHtml(m.all);
   if(w){ const wb=document.createElement("div"); wb.innerHTML=w; box.appendChild(wb); }
 }
 
