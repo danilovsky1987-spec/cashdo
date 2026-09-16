@@ -1000,6 +1000,36 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .howto .full{font-size:13px;text-align:center;padding-top:4px}
   .howto .full a{color:var(--wk-fg);font-weight:600}
 
+  /* Заголовок блока приёмки — кликабельный, и это должно быть видно.
+     Без стрелки никто не догадается, что сюда можно нажать. */
+  .pend .ph[role="button"] span::after{content:" \203A";font-weight:700;opacity:.55;
+    display:inline-block;padding-left:3px}
+  .pend .ph[role="button"]:active{opacity:.6}
+
+  /* ---------- Экран «На проверке» ----------
+     Сын отправляет дела и не видит, что с ними стало дальше: блок на
+     главной показывает только очередь, а отказы исчезают, как только
+     дело переделали. Здесь вся дорога целиком. */
+  .chk .top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .chk .top div{background:var(--soft2);border-radius:12px;padding:10px 4px;text-align:center}
+  .chk .top b{display:block;font-family:var(--display);font-weight:700;font-size:19px;line-height:1.1}
+  .chk .top span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+  .chk .top .w b{color:var(--prB-fg)}
+  .chk .top .o b{color:var(--done)}
+  .chk .top .n b{color:var(--prA-fg)}
+  .chk h5{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+    font-weight:700;margin:16px 0 6px}
+  .chk h5:first-of-type{margin-top:0}
+  .chk .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+    padding:8px 0;border-bottom:1px solid var(--soft2);font-size:13.5px}
+  .chk .row:last-child{border-bottom:0}
+  .chk .row .d{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .chk .row .why{display:block;font-size:12px;color:var(--prA-fg);margin-top:2px}
+  .chk .row .p{font-family:var(--display);font-weight:700;white-space:nowrap}
+  .chk .row .p.gray{color:var(--muted);font-weight:400;font-family:inherit;font-size:12px}
+  .chk .empty{font-size:13px;color:var(--muted);padding:6px 0}
+  .chk .more{font-size:12px;color:var(--faint);padding-top:8px}
+
   /* ---------- План на завтра ---------- */
   .tmw{background:var(--wk-bg);color:var(--wk-fg);border-radius:12px;padding:11px 13px;
     margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -4004,6 +4034,13 @@ function openMore(){
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/></svg>
           <div>Цель на неделю<span>${rub(prefs.weekGoalRub||0)} ₽ · ${prefs.weekGoal} дел${isParent()?"":" · только папа"}</span></div>
         </button>`}
+        <button class="mbtn" id="moChk" type="button">
+          <svg class="i" viewBox="0 0 24 24"><path d="M4.5 12.4l4.2 4.2 10.8-10.8"/><path d="M19.5 12v6.4a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V7.6a2 2 0 0 1 2-2h7.6"/></svg>
+          <div>На проверке<span>${(()=>{const s=checkStats();
+            return s.wait.length ? s.wait.length+" "+plural(s.wait.length,"дело","дела","дел")+" ждёт папу"
+                 : (s.back.length ? s.back.length+" "+plural(s.back.length,"дело","дела","дел")+" вернули"
+                 : "что принято и что вернули");})()}</span></div>
+        </button>
         <button class="mbtn" id="moRules" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M5.5 4.6h13v14.8H5.5z"/><path d="M8.6 9h6.8M8.6 12.6h6.8M8.6 16.2h4"/></svg>
           <div>Правила<span>${(()=>{const p=penActive(),r=p&&ruleById(p.rule);
@@ -4041,6 +4078,7 @@ function openMore(){
     const mr=b.querySelector("#moRole");
     if(mr) mr.onclick=()=>{ close(); askDeviceRole(); };
     on("#moGoal",gate(()=>openGoal($("#moreBtn")),"Цель на неделю"));
+    b.querySelector("#moChk").onclick=()=>{ close(); openCheck(); };
     on("#moRules",()=>{ close(); openRules(); });
     b.querySelector("#moHow").onclick=()=>{ close(); openHowTo(); };
     on("#moCats",gate(restoreCats,"Возврат направлений"));
@@ -4334,7 +4372,9 @@ const DEBT = {
     {date:"2026-09-27", sum:4800,  name:"Твоя пятница",      gift:"отбой на час позже"},
     {date:"2026-10-04", sum:7200,  name:"День вдвоём",       gift:"маршрут выбираешь ты"},
     {date:"2026-10-11", sum:9600,  name:"Поездка и премия",  gift:"+1 500 ₽ сверху"},
-    {date:"2026-10-18", sum:12000, name:"Свобода и событие", gift:""}
+    /* Пятая точка замыкает круг: долг был за крышку — и крышка же
+       его закрывает, но уже заработанная. Решение отца от 16 сентября. */
+    {date:"2026-10-18", sum:12000, name:"Новая крышка", gift:"дальше деньги твои"}
   ]
 };
 /* Звания живут отдельно от контрольных точек договора: точки — это
@@ -5023,6 +5063,66 @@ function backText(t){
   const w=(BACK_WHY.find(x=>x.id===t.back.w)||{}).n||"Вернули";
   return "Вернули: "+w.toLowerCase()+(t.back.c?" — "+t.back.c:"");
 }
+/* ---------- Экран «На проверке» ----------
+   Отвечает на три вопроса сына, на которые главный экран не отвечает:
+   что папа ещё не смотрел, что он принял и что вернул — и почему.
+
+   Про «вернул» отдельно. Подпись возврата живёт на самом деле и стирается,
+   как только дело отметили заново (clearBack). Это правильно для списка дел:
+   вечный укор под делом никому не нужен. Но тогда отказ нигде не остаётся,
+   и разговор «ты мне вернул, а я не понял почему» упирается в память.
+   Здесь показаны те возвраты, которые ещё в силе — дело вернули и оно
+   пока не переделано. */
+function checkStats(){
+  const all=state.tasks.filter(t=>!t.del);
+  const wait=all.filter(t=>!t.log && t.done && !t.ok)
+                .sort((a,b)=>(a.doneAt||0)-(b.doneAt||0));      /* первым — то, что ждёт дольше */
+  const back=all.filter(t=>!t.log && t.back && t.back.at && !t.done)
+                .sort((a,b)=>(b.back.at||0)-(a.back.at||0));
+  const done=all.filter(t=>t.ok && t.okAt).sort((a,b)=>(b.okAt||0)-(a.okAt||0));
+  return {wait, back, done,
+    waitSum: wait.reduce((a,t)=>a+moneyOf(t),0),
+    doneSum: earnedSum(done)};
+}
+function openCheck(){
+  const st=checkStats();
+  /* Цена возвращённого дела показана серым, а не прочерком: он должен
+     видеть, сколько к нему вернётся, если переделает. Прочерк читался
+     как «эти деньги пропали». */
+  const row=(txt,when,price,extra,gray)=>
+    `<div class="row"><div>${txt}<span class="d">${when}</span>${extra||""}</div>
+      <div class="p${gray?" gray":""}">${price===null?"—":rub(price)+" ₽"}</div></div>`;
+  modal((b,close)=>{
+    b.innerHTML=`<h4>На проверке</h4>
+      <div class="chk">
+        <div class="top">
+          <div class="w"><b>${st.wait.length}</b><span>ждут папу</span></div>
+          <div class="o"><b>${st.done.length}</b><span>принято</span></div>
+          <div class="n"><b>${st.back.length}</b><span>вернули</span></div>
+        </div>
+
+        <h5>Ждут папу${st.waitSum?" · "+rub(st.waitSum)+" ₽":""}</h5>
+        ${st.wait.length
+          ? st.wait.map(t=>row(t.text, "отправлено "+fmtWhen(t.doneAt), moneyOf(t))).join("")
+          : `<div class="empty">Ничего не отправлено. Отметь дело — оно придёт сюда.</div>`}
+
+        <h5>Вернули</h5>
+        ${st.back.length
+          ? st.back.map(t=>row(t.text, fmtWhen(t.back.at)+" · переделай — деньги вернутся", moneyOf(t),
+              `<span class="why">${backText(t).replace(/^Вернули: /,"")}</span>`, true)).join("")
+          : `<div class="empty">Ничего не возвращали.</div>`}
+
+        <h5>Принято${st.doneSum?" · "+rub(st.doneSum)+" ₽":""}</h5>
+        ${st.done.length
+          ? st.done.slice(0,10).map(t=>row(t.text, fmtWhen(t.okAt), t.earned||moneyOf(t))).join("")
+            + (st.done.length>10?`<div class="more">и ещё ${st.done.length-10} — всё в «Истории»</div>`:"")
+          : `<div class="empty">Пока ничего не принято.</div>`}
+      </div>
+      <div class="modalfoot"><button class="btn" id="chkOk">Понятно</button></div>`;
+    b.querySelector("#chkOk").onclick=close;
+  });
+}
+
 /* ---------- Итог прошлой недели ----------
    Показывается в понедельник и вторник: неделя уже закрыта, цифра
    окончательная, и её приятно перечитать. Закрывается крестиком и
@@ -5218,6 +5318,14 @@ function renderPending(){
   const h=document.createElement("div");
   h.className="ph";
   h.innerHTML=`<b>На проверке</b><span>${list.length} ${plural(list.length,"дело","дела","дел")} · ${rub(sum)} ₽</span>`;
+  /* Заголовок блока — вход в подробный экран. Сам блок показывает только
+     очередь; что приняли и что вернули — там. */
+  h.style.cursor="pointer";
+  h.setAttribute("role","button");
+  h.setAttribute("tabindex","0");
+  h.title="Показать подробно";
+  h.onclick=openCheck;
+  h.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openCheck(); } };
   wrap.appendChild(h);
   list.slice(0,8).forEach(t=>{
     const row=document.createElement("div"); row.className="pr";
