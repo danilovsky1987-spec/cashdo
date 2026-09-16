@@ -1028,6 +1028,15 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .chk .row .p{font-family:var(--display);font-weight:700;white-space:nowrap}
   .chk .row .p.gray{color:var(--muted);font-weight:400;font-family:inherit;font-size:12px}
   .chk .empty{font-size:13px;color:var(--muted);padding:6px 0}
+  .chk .p.ok{color:var(--done)}
+  .chk .blsum{font-size:13px;color:var(--muted);margin:-6px 0 2px}
+  /* Первый h5 в окне прижат к верху (h5:first-of-type), но после строки
+     с процентом он оказывается не первым по смыслу — возвращаем отступ. */
+  .chk .blsum + h5{margin-top:15px}
+  .chk .blsum b{color:var(--ink);font-family:var(--display)}
+  .blall{display:block;width:100%;margin-top:10px;font:inherit;font-size:12.5px;
+    font-weight:600;color:var(--wk-fg);background:var(--wk-bg);border:0;
+    border-radius:10px;padding:10px;cursor:pointer;text-align:center}
   .chk .more{font-size:12px;color:var(--faint);padding-top:8px}
 
   /* ---------- План на завтра ---------- */
@@ -2394,7 +2403,7 @@ function makeRow(t,{showCat=false}={}){
         (repeatDays(t)===7?"неделю":repeatDays(t)===30?"месяц":"четверть")+
         " — "+cooldownWord(t)+".",{title:"Ещё рано"}); return; }
     t.done=!t.done;
-    if(t.done){ t.doneAt=Date.now(); clearBack(t); }
+    if(t.done){ t.doneAt=Date.now(); markBackFixed(t); clearBack(t); }
     else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; }
     save();render();
   };
@@ -3513,6 +3522,7 @@ async function init(){
   state.tasks.forEach(t=>{if(!("date"in t))t.date=null});
   if(purgeBin()) save();
   syncCatalog();
+  seedBacklog();
 
   render();
 
@@ -4145,6 +4155,8 @@ function syncPack(){
        у себя, иначе правило существует только на словах. */
     penalty:prefs.penalty||null,
     sprint:prefs.sprint||null,
+    /* Возвраты пишет папа, читает сын — журнал обязан ездить. */
+    backlog:prefs.backlog||[],
     /* ПИН по сети больше не ездит. Раньше отправлялся специально — чтобы
        доехать до телефона сына и папа мог войти там в родительский режим.
        Но база открытая: кто знает код семьи, тот читал ПИН строкой. Теперь
@@ -4195,6 +4207,19 @@ function syncApply(d){
     /* Входящий ПИН игнорируем: он локальный и приезжать не должен. */
     if("penalty" in d) { if(d.penalty) prefs.penalty=d.penalty; else delete prefs.penalty; }
     if("sprint" in d) { if(d.sprint) prefs.sprint=d.sprint; else delete prefs.sprint; }
+    /* Журнал сливаем по id, а не заменяем: запись рождается на папином
+       телефоне, а отметка «переделал» ставится на телефоне сына — обе
+       половинки должны сойтись в одной записи. */
+    if(Array.isArray(d.backlog)){
+      const byId=new Map((prefs.backlog||[]).map(x=>[x.id,x]));
+      d.backlog.forEach(x=>{
+        if(!x||!x.id) return;
+        const m=byId.get(x.id);
+        if(!m) byId.set(x.id,x);
+        else if(x.fix && !m.fix) m.fix=x.fix;
+      });
+      prefs.backlog=[...byId.values()].sort((a,b)=>a.at-b.at).slice(-BACKLOG_MAX);
+    }
     if(typeof d.wonWeek==="string") prefs.wonWeek=d.wonWeek;
     save(); savePrefs();
   } finally { SYNC.applying=false; }
@@ -5043,11 +5068,66 @@ function applyReturn(t, why, note){
   t.done=false;
   delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned;
   t.back={w:why||"part", c:note||"", at:Date.now()};
+  logReturn(t, why, note);
   save(); render();
 }
 /* Подпись возврата снимается, как только дело отметили снова:
    она про прошлый раз, а не про вечный укор. */
 function clearBack(t){ if(t.back) delete t.back; }
+
+/* ---------- Журнал возвратов ----------
+   Подпись возврата живёт на самом деле и стирается, как только дело
+   отметили заново. Для списка дел это правильно — вечный укор под делом
+   никому не нужен, — но тогда отказ нигде не остаётся, и разговор
+   «ты мне вернул, а я не понял почему» упирается в чью-то память.
+
+   Журнал пишется рядом, в prefs: state.tasks сохраняется как голый массив
+   (см. save()), приткнуть туда ещё и список отказов негде. Запись живёт
+   своей жизнью и после того, как дело переделали: у неё проставляется
+   время исправления, и она переезжает из «не переделал» в «переделал».
+
+   Это не только список претензий. Отношение «вернули / переделал» —
+   единственная цифра, которая показывает, слышит ли он замечания. */
+const BACKLOG_MAX=300;
+function backlog(){ return prefs.backlog||(prefs.backlog=[]); }
+function logReturn(t, why, note){
+  const L=backlog();
+  L.push({id:uid(), task:t.id, text:t.text, w:why||"part", c:note||"",
+          at:Date.now(), price:moneyOf(t), fix:0});
+  if(L.length>BACKLOG_MAX) prefs.backlog=L.slice(-BACKLOG_MAX);
+  savePrefs();
+}
+/* Дело отметили заново — закрываем последнюю незакрытую запись по нему.
+   Именно последнюю: одно и то же дело могут вернуть дважды, и второй
+   возврат не должен закрывать первый. */
+function markBackFixed(t){
+  const L=prefs.backlog; if(!L||!L.length) return;
+  for(let i=L.length-1;i>=0;i--){
+    if(L[i].task===t.id && !L[i].fix){ L[i].fix=Date.now(); savePrefs(); return; }
+  }
+}
+/* Журнал завели 16 сентября, а возвраты случались и раньше. Те, что ещё
+   висят на делах, переносим один раз — иначе они просто исчезли бы
+   из истории в день, когда их переделают. */
+function seedBacklog(){
+  if(prefs.backlogSeeded) return;
+  const live0=state.tasks.filter(t=>!t.del && !t.log && t.back && t.back.at);
+  const L=backlog();
+  live0.forEach(t=>{
+    if(L.some(x=>x.task===t.id && x.at===t.back.at)) return;
+    L.push({id:uid(), task:t.id, text:t.text, w:t.back.w||"part", c:t.back.c||"",
+            at:t.back.at, price:moneyOf(t), fix:0});
+  });
+  L.sort((a,b)=>a.at-b.at);
+  prefs.backlogSeeded=true; savePrefs();
+}
+function backlogStats(){
+  const L=(prefs.backlog||[]).slice().sort((a,b)=>b.at-a.at);
+  const fixed=L.filter(x=>x.fix).length;
+  const why={};
+  BACK_WHY.forEach(w=>why[w.id]=L.filter(x=>x.w===w.id).length);
+  return {list:L, all:L.length, fixed, open:L.length-fixed, why};
+}
 /* Что стало с предложением — сын читает строкой под делом. */
 function propText(t){
   if(!t.prop) return "";
@@ -5084,6 +5164,49 @@ function checkStats(){
     waitSum: wait.reduce((a,t)=>a+moneyOf(t),0),
     doneSum: earnedSum(done)};
 }
+/* Весь журнал отказов — отдельным окном, чтобы не раздувать «На проверке».
+   Сверху отношение «вернули / переделал»: одна цифра, по которой видно,
+   слышит ли он замечания. Ниже разбор по причинам — если две трети
+   возвратов «не проверил за собой», разговор нужен один, а не десять. */
+function openBacklog(){
+  const st=backlogStats();
+  const pct = st.all ? Math.round(st.fixed/st.all*100) : 0;
+  const whyName=id=>((BACK_WHY.find(w=>w.id===id)||{}).n||"Вернули").toLowerCase();
+  /* Куски собираются по отдельности: один шаблон на всё окно получался
+     в четыре уровня вложенности, и потерянная скобка ломала весь скрипт
+     целиком — приложение не запускалось вообще. */
+  const whyRows = BACK_WHY
+    .filter(w=>st.why[w.id])
+    .map(w=>`<div class="row"><div>${w.n}</div><div class="p">${st.why[w.id]}</div></div>`)
+    .join("") || `<div class="empty">—</div>`;
+  const rows = st.list.map(x=>{
+    const when = fmtWhen(x.at)+" · "+rub(x.price)+" ₽"
+               + (x.fix ? " · переделал "+fmtWhen(x.fix) : "");
+    const why  = whyName(x.w) + (x.c ? " — "+x.c : "");
+    return `<div class="row">
+      <div>${x.text}<span class="d">${when}</span><span class="why">${why}</span></div>
+      <div class="p ${x.fix?"ok":"gray"}">${x.fix?"✓":"ждёт"}</div>
+    </div>`;
+  }).join("");
+  const body = st.all
+    ? `<div class="top">
+         <div class="n"><b>${st.all}</b><span>всего</span></div>
+         <div class="o"><b>${st.fixed}</b><span>переделал</span></div>
+         <div class="w"><b>${st.open}</b><span>пока нет</span></div>
+       </div>
+       <div class="blsum">Переделано <b>${pct}%</b> из того, что возвращали</div>
+       <h5>Из-за чего возвращали</h5>${whyRows}
+       <h5>По одному</h5>${rows}`
+    : `<div class="empty">Возвратов не было. Журнал заведён 16 сентября —
+       всё, что вернут дальше, останется здесь.</div>`;
+  modal((b,close)=>{
+    b.innerHTML=`<h4>Все возвраты</h4>
+      <div class="chk">${body}</div>
+      <div class="modalfoot"><button class="btn" id="blOk">Понятно</button></div>`;
+    b.querySelector("#blOk").onclick=close;
+  });
+}
+
 function openCheck(){
   const st=checkStats();
   /* Цена возвращённого дела показана серым, а не прочерком: он должен
@@ -5110,7 +5233,10 @@ function openCheck(){
         ${st.back.length
           ? st.back.map(t=>row(t.text, fmtWhen(t.back.at)+" · переделай — деньги вернутся", moneyOf(t),
               `<span class="why">${backText(t).replace(/^Вернули: /,"")}</span>`, true)).join("")
-          : `<div class="empty">Ничего не возвращали.</div>`}
+          : `<div class="empty">Сейчас ничего не висит.</div>`}
+        ${(()=>{const bs=backlogStats(); return bs.all
+          ? `<button type="button" class="blall" id="blAll">Все возвраты за всё время — ${bs.all} · переделал ${bs.fixed}</button>`
+          : "";})()}
 
         <h5>Принято${st.doneSum?" · "+rub(st.doneSum)+" ₽":""}</h5>
         ${st.done.length
@@ -5120,6 +5246,8 @@ function openCheck(){
       </div>
       <div class="modalfoot"><button class="btn" id="chkOk">Понятно</button></div>`;
     b.querySelector("#chkOk").onclick=close;
+    const all=b.querySelector("#blAll");
+    if(all) all.onclick=()=>{ close(); openBacklog(); };
   });
 }
 
@@ -5626,7 +5754,7 @@ function skinShiftFill(box){
         if(!t.done && onCooldown(t)){
           tell("Это дело уже засчитано — "+cooldownWord(t)+".",{title:"Ещё рано"}); return; }
         t.done=!t.done;
-        if(t.done){ t.doneAt=Date.now(); clearBack(t); }
+        if(t.done){ t.doneAt=Date.now(); markBackFixed(t); clearBack(t); }
         else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; }
         save(); render();
       };
