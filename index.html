@@ -1342,6 +1342,12 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .pen .act button{font:inherit;font-size:12.5px;font-weight:600;border-radius:9px;
     padding:8px 13px;cursor:pointer;border:1px solid var(--prA-fg);
     background:transparent;color:var(--prA-fg)}
+  /* Последствие не только написано, но и применено: эти блоки закрыты,
+     пока оно действует. Ничего не удаляется — вернётся, когда снимут. */
+  body[data-pen="noTomorrow"] #tmwBox,
+  body[data-pen="noPick"] #pickOpen,
+  body[data-pen="noPick"] #pickTitle,
+  body[data-pen="noPick"] #pickPanel{display:none!important}
   /* ---------- Правила ---------- */
   .rl{display:grid;grid-template-columns:1fr auto;gap:10px;padding:11px 0;
     border-bottom:1px solid var(--soft2);align-items:center}
@@ -3115,6 +3121,9 @@ function render(){
   /* По этой метке CSS решает, что показывать: деньги к выдаче, заметка
      о резервной копии и футер с «Сбросить всё» сыну не адресованы. */
   document.body.classList.toggle("parent",isParent());
+  /* Что именно закрыто действующим последствием. Пусто — ничего. */
+  const _pen=penActive(), _pr=_pen&&ruleById(_pen.rule);
+  document.body.dataset.pen=(_pr&&_pr.effect)||"";
   renderTitle(v);
   syncCatSelect();
   if(v==="today") renderToday();
@@ -4399,22 +4408,40 @@ function levelOf(all){
 
    until: "morning" — до 8 утра, "today" — до конца дня, "" — без срока
    (такое правило не «применяют», оно про то, что папа делает руками). */
+/* Потери взяты из двух групп — «право выбора» и «восстановительное»
+   (`Что можно терять — каталог.html`). Ни одна не отнимает вещь: отнимается
+   привилегия или требуется исправить. Ничего съедобного, ничего про спорт
+   и учёбу, никто кроме него не задет.
+
+   Первый заход был с телефоном до утра — и промахнулся: телефон в 20:00
+   уже сдан, отнимать нечего. Отсюда правило отбора: потеря должна касаться
+   того, что у него есть в этот момент.
+
+   effect — что приложение делает на самом деле, а не только пишет:
+   noTomorrow — план на завтра собирает папа,
+   noPick     — «Взять на сегодня» закрыто, работа только по наряду,
+   ""         — эффекта в приложении нет, договорённость живёт в семье. */
 const RULES=[
-  {id:"late",  what:"Наряд не сдан до 20:00",        lose:"Телефон до утра",
+  {id:"late",  what:"Наряд не сдан до 20:00",
+   lose:"Наряд на завтра собирает папа", effect:"noTomorrow",
    until:"morning", back:"Сдать сегодняшний наряд до 21:00",
-   note:"Второй раз подряд — на выходные"},
-  {id:"rude",  what:"Грубость, крик, хлопнул дверью", lose:"День без экрана",
+   note:"Выбирать дела завтра будет не он"},
+  {id:"rude",  what:"Грубость, крик, хлопнул дверью",
+   lose:"Вечер выбирает не он", effect:"",
    until:"today",   back:"Извинился сам, до вечера",
-   note:"Считается в тот же день"},
-  {id:"skip",  what:"Пропустил карате без причины",   lose:"Вечер игр отменён",
-   until:"today",   back:"",
-   note:"Причина — болезнь или дела, а не «не хочу»"},
-  {id:"lie",   what:"Соврал о сделанном",             lose:"Дело не в счёт",
+   note:"Фильм, музыка и что на ужин — не его выбор"},
+  {id:"skip",  what:"Пропустил карате без причины",
+   lose:"Только по наряду", effect:"noPick",
+   until:"morning", back:"",
+   note:"«Взять на сегодня» закрыто · причина — болезнь или дела, а не «не хочу»"},
+  {id:"lie",   what:"Соврал о сделанном",
+   lose:"Дело не в счёт", effect:"",
    until:"",        back:"Переделать и сдать заново",
-   note:"Дело возвращается и не оплачивается"},
-  {id:"break", what:"Испортил чужое",                 lose:"Чинит или возмещает",
+   note:"Дело возвращается кнопкой «Вернуть» и не оплачивается"},
+  {id:"break", what:"Испортил чужое",
+   lose:"Чинит или возмещает", effect:"",
    until:"",        back:"",
-   note:"Долг за крышку это не меняет"}
+   note:"Отдельно от долга за крышку · деньги на это не из счёта"}
 ];
 const ruleById = id => RULES.find(r=>r.id===id)||null;
 function penUntil(kind){
@@ -4450,8 +4477,11 @@ function renderPenalty(){
   const r=ruleById(p.rule); if(!r) return;
   const el=document.createElement("div");
   el.className="pen";
+  const EFF={noTomorrow:"План на завтра сейчас не собирается — дела на завтра поставит папа",
+             noPick:"«Взять на сегодня» закрыто — работаешь по наряду"};
   el.innerHTML=`<div class="t">Сейчас действует: ${r.lose.toLowerCase()}</div>
     <div class="s">${r.what.toLowerCase()} · ${penWhen(p)}</div>
+    ${EFF[r.effect]?`<div class="s">${EFF[r.effect]}</div>`:""}
     ${r.back?`<div class="back">Можно снять раньше: ${r.back.toLowerCase()} — <b>папа снимет</b></div>`:""}`;
   if(isParent()){
     const act=document.createElement("div"); act.className="act";
@@ -4471,6 +4501,7 @@ function openRules(){
         <div class="s">${r.what.toLowerCase()} · ${penWhen(p)}</div></div>`:""}
       <div class="rules"></div>
       <div class="modalfoot">
+        ${isParent()?`<button class="btn ghost" id="rlWork">Дать отработку</button>`:""}
         ${r&&isParent()?`<button class="btn ghost" id="rlOff">Снять последствие</button>`:""}
         <button class="btn" id="rlClose">Закрыть</button>
       </div>`;
@@ -4487,9 +4518,37 @@ function openRules(){
       }
       list.appendChild(row);
     });
+    const work=b.querySelector("#rlWork");
+    if(work) work.onclick=()=>{ close(); openPayback(); };
     b.querySelector("#rlClose").onclick=close;
     const off=b.querySelector("#rlOff");
     if(off) off.onclick=()=>{ penClear(); close(); };
+  });
+}
+
+/* Отработка — дело сверх наряда, которое не оплачивается. Не потеря,
+   а действие: последствие звучит как «я исправил», а не «мне плохо».
+   Цена ноль стоит нарочно — видно, что это отработка, а не заработок. */
+function openPayback(){
+  modal((b,close)=>{
+    b.innerHTML=`<h4>Дать отработку</h4>
+      <p style="margin:0 0 12px;color:var(--muted);font-size:13px">
+        Дело сверх наряда, на сегодня. Денег не приносит — это исправление,
+        а не заработок.</p>
+      <div class="syncf"><label>Что сделать</label>
+        <input id="pbText" type="text" maxlength="120" placeholder="например: отмыть то, что залил"></div>
+      <div class="modalfoot">
+        <button class="btn ghost" id="pbCancel">Отмена</button>
+        <button class="btn" id="pbOk">Поставить</button>
+      </div>`;
+    b.querySelector("#pbCancel").onclick=close;
+    b.querySelector("#pbOk").onclick=()=>{
+      const t=b.querySelector("#pbText").value.trim();
+      if(!t){ b.querySelector("#pbText").focus(); return; }
+      state.tasks.push({id:uid(), cat:form.cat, text:t, prio:"A", note:"отработка",
+        price:0, date:todayISO(), done:false, work:true});
+      save(); render(); close();
+    };
   });
 }
 
