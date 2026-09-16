@@ -1025,6 +1025,19 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   /* ---------- Итог недели ---------- */
   .wsum{background:linear-gradient(150deg,#1f7a4f,#12603c);color:#fff;border-radius:14px;
     padding:14px 15px;margin-bottom:10px;position:relative}
+  /* Цель почти взята — песочная; далеко — спокойная белая. */
+  .wsum.close{background:var(--prB-bg);color:var(--prB-fg);border:1px solid rgba(160,106,0,.25)}
+  .wsum.close h5{color:var(--prB-fg);opacity:.75}
+  .wsum.close .big,.wsum.close .li{color:var(--prB-fg)}
+  .wsum.close .li{opacity:.85}
+  .wsum.close .goal{background:rgba(160,106,0,.14);color:var(--prB-fg)}
+  .wsum.close .x{color:var(--prB-fg);opacity:.6;background:rgba(160,106,0,.12)}
+  .wsum.far{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+  .wsum.far h5{color:var(--faint)}
+  .wsum.far .big{color:var(--ink)}
+  .wsum.far .li{color:var(--muted)}
+  .wsum.far .goal{background:var(--soft2);color:var(--muted)}
+  .wsum.far .x{color:var(--muted);background:var(--soft2)}
   .wsum h5{margin:0;font-family:var(--display);font-weight:700;font-size:15px}
   .wsum .big{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.08;margin-top:5px}
   .wsum .li{font-size:12.5px;color:rgba(255,255,255,.82);margin-top:3px}
@@ -1138,7 +1151,9 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   /* смена */
   .todayearn .l{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700}
   .todayearn .v{font-family:var(--display);font-weight:700;font-size:34px;line-height:1.05;color:var(--done)}
-  .todayearn .s{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .todayearn .wl{margin-top:10px}
+  .todayearn .wv{color:var(--prB-fg)}
+  .todayearn .s{font-size:12.5px;color:var(--muted);margin-top:6px}
   .todayearn .s b{font-family:var(--display);color:var(--ink);font-weight:700}
   .hintbox{background:var(--prB-bg);color:var(--prB-fg);border-radius:10px;padding:9px 11px;
     font-size:12.5px;margin-top:11px;line-height:1.45}
@@ -1306,11 +1321,38 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
      на вкладке «Сегодня». */
   body[data-view="list"] #moneyBar,
   body[data-view="hist"] #moneyBar{display:none}
-  /* На «Истории» дела не заводят: ни карточки, ни шторки, ни круглой «+». */
-  body[data-view="hist"] #addOpen,
-  body[data-view="hist"] .addcard,
-  body[data-view="hist"] .scrim{display:none!important}
-  body[data-view="hist"] .fab{opacity:0;pointer-events:none;transform:scale(.7)}
+  /* Карточка «Что предлагаешь сделать» живёт только на «Сегодня».
+     Раньше она дублировалась ещё и на «Всех задачах» — а предложить дело
+     можно с главного экрана, второй такой же карточке там взяться неоткуда. */
+  body:not([data-view="today"]) #addOpen,
+  body:not([data-view="today"]) .addcard,
+  body:not([data-view="today"]) .scrim{display:none!important}
+  body:not([data-view="today"]) .fab{opacity:0;pointer-events:none;transform:scale(.7)}
+
+  /* ---------- Что действует сейчас ----------
+     Показывается, только когда последствие применено. Ничего не нарушено —
+     блока нет вовсе: экран ребёнка не должен начинаться с правил. */
+  .pen{background:var(--prA-bg);border-radius:14px;padding:13px 15px;margin-bottom:12px}
+  .pen .t{font-size:15px;font-weight:700;color:var(--prA-fg)}
+  .pen .s{font-size:12.5px;color:var(--prA-fg);opacity:.9;margin-top:3px;line-height:1.4}
+  .pen .back{font-size:13px;margin-top:10px;padding:9px 11px;border-radius:10px;
+    background:var(--card);color:var(--ink);line-height:1.4}
+  .pen .back b{color:var(--done)}
+  .pen .act{display:flex;gap:8px;margin-top:10px}
+  .pen .act button{font:inherit;font-size:12.5px;font-weight:600;border-radius:9px;
+    padding:8px 13px;cursor:pointer;border:1px solid var(--prA-fg);
+    background:transparent;color:var(--prA-fg)}
+  /* ---------- Правила ---------- */
+  .rl{display:grid;grid-template-columns:1fr auto;gap:10px;padding:11px 0;
+    border-bottom:1px solid var(--soft2);align-items:center}
+  .rl:last-child{border-bottom:0}
+  .rl .a{font-size:13.5px;line-height:1.35}
+  .rl .a span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .rl .b{font-size:12.5px;font-weight:600;color:var(--prA-fg);text-align:right;white-space:nowrap}
+  .rl .b button{display:block;margin:5px 0 0 auto;font:inherit;font-size:11.5px;font-weight:600;
+    border:1px solid var(--edge);background:var(--card);color:var(--muted);
+    border-radius:8px;padding:4px 9px;cursor:pointer}
+  .rl .b button:hover{border-color:var(--prA-fg);color:var(--prA-fg)}
 
   /* ---------- Шапка долга ----------
      Сын открывает приложение и должен видеть три вещи сразу: сколько
@@ -1352,6 +1394,7 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
      У папы наоборот: он открывает приложение, чтобы принять работу,
      поэтому приёмка поднимается на самый верх. */
   #moneyBar{display:flex;flex-direction:column}
+  #penBox    {order:-2}
   #debtBox   {order:-1}
   #skinSw    {order:0}
   #skinBody  {order:1}
@@ -1450,6 +1493,7 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
 
   <!-- ДЕНЬГИ -->
   <div class="moneybar" id="moneyBar">
+    <div id="penBox"></div>
     <div id="debtBox"></div>
     <div id="weekSumBox" hidden></div>
     <div id="pendBox" hidden></div>
@@ -2141,6 +2185,7 @@ function renderMoney(){
     : (owed>0 ? `Выплачено ${fmt(paid)} · осталось выдать <b>${fmt(owed)}</b>`
               : (paid>0 ? `Выплачено всё · ${fmt(paid)}` : "Долг закрыт — дальше счёт сына"));
   MONEY_OWED=owed;
+  renderPenalty();
   renderDebtHead(all);
   renderParentBar();
   renderWeekSummary();
@@ -3402,6 +3447,11 @@ async function init(){
 
   render();
 
+  /* Роль устройства спрашиваем один раз — от неё зависит, есть ли на этом
+     телефоне приёмка. До 16 сентября роли не было, и ПИН приходилось возить
+     через открытую базу, чтобы папа мог войти с телефона сына. */
+  if(!deviceRole()) askDeviceRole();
+
   await loadSnaps();
   dailySnap();
 
@@ -3892,7 +3942,7 @@ function openMore(){
     const days=prefs.lastBackup?daysSince(prefs.lastBackup):null;
     b.innerHTML=`<h4>Ещё</h4>
       <div class="mrow" style="margin-top:0;padding-top:0;border-top:0">
-        <button class="mbtn" id="moPay" type="button"${MONEY_OWED>0?"":" disabled"}>
+        ${isChildDevice()?"":`<button class="mbtn" id="moPay" type="button"${MONEY_OWED>0?"":" disabled"}>
           <svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><circle cx="12" cy="12" r="2.7"/><path d="M6.2 12h.01M17.8 12h.01" stroke-width="2.4"/></svg>
           <div>Выплатить<span>${!isParent()?"только папа"
             :(MONEY_OWED>0?"к выдаче "+fmt(MONEY_OWED)
@@ -3902,27 +3952,36 @@ function openMore(){
           <svg class="i" viewBox="0 0 24 24"><path d="M20.2 12.4a8.2 8.2 0 0 1-13.9 5.4M3.8 11.6a8.2 8.2 0 0 1 13.9-5.4"/><path d="M3.4 19.4v-4.2h4.2M20.6 4.6v4.2h-4.2"/></svg>
           <div>Синхронизация<span>${isParent()?(SYNC.msg||(syncOn()?"включена":"выключена")):"только папа"}</span></div>
         </button>
-        <button class="mbtn" id="moParent" type="button">
+        ${isChildDevice()?"":`<button class="mbtn" id="moParent" type="button">
           <svg class="i" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/><path d="M12 14.4v2.4"/></svg>
           <div>Родительский режим<span>${isParent()?"включён — можно менять цены и принимать дела"
             :(hasPin()?"выключен · нужен ПИН":"не настроен — придумайте ПИН")}</span></div>
-        </button>
+        </button>`}
+        ${isParent()?`<button class="mbtn" id="moRole" type="button">
+          <svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.5 18.6h3"/></svg>
+          <div>Этот телефон<span>${deviceRole()===ROLE_CHILD?"сына — приёмки здесь нет":"мой — здесь принимаются дела"}</span></div>
+        </button>`:""}
         <button class="mbtn" id="moGoal" type="button">
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/></svg>
           <div>Цель на неделю<span>${rub(prefs.weekGoalRub||0)} ₽ · ${prefs.weekGoal} дел${isParent()?"":" · только папа"}</span></div>
+        </button>`}
+        <button class="mbtn" id="moRules" type="button">
+          <svg class="i" viewBox="0 0 24 24"><path d="M5.5 4.6h13v14.8H5.5z"/><path d="M8.6 9h6.8M8.6 12.6h6.8M8.6 16.2h4"/></svg>
+          <div>Правила<span>${(()=>{const p=penActive(),r=p&&ruleById(p.rule);
+            return r?("сейчас: "+r.lose.toLowerCase()):"что теряется и как вернуть";})()}</span></div>
         </button>
         <button class="mbtn" id="moHow" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M4.5 5.5A2 2 0 0 1 6.5 3.5H11v17H6.5a2 2 0 0 0-2 2z"/><path d="M19.5 5.5a2 2 0 0 0-2-2H13v17h4.5a2 2 0 0 1 2 2z"/></svg>
           <div>Как это работает<span>Правила про деньги и проверку</span></div>
         </button>
-        <button class="mbtn" id="moCats" type="button">
+        ${isChildDevice()?"":`<button class="mbtn" id="moCats" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M20.4 13.1l-7.3 7.3a2 2 0 0 1-2.8 0l-6.6-6.6a2 2 0 0 1-.6-1.4V4.6a1 1 0 0 1 1-1h7.8a2 2 0 0 1 1.4.6l7.1 7.1a1.3 1.3 0 0 1 0 1.8z"/><path d="M8 8h.01" stroke-width="2.8"/></svg>
           <div>Вернуть направления<span>${isParent()?"если какое-то пропало из списка":"только папа"}</span></div>
         </button>
         <button class="mbtn" id="moOne" type="button">
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="9.6" r="5.2"/><path d="M8.6 14.2L7.2 21l4.8-2.4 4.8 2.4-1.4-6.8"/></svg>
           <div>Разовое начисление<span>${isParent()?"премия за то, чего нет в списке":"только папа"}</span></div>
-        </button>
+        </button>`}
         <button class="mbtn" id="moBk" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M12 3.4v10.8M8.2 10.6l3.8 3.9 3.8-3.9"/><path d="M4.2 16.4v2.4a2 2 0 0 0 2 2h11.6a2 2 0 0 0 2-2v-2.4"/></svg>
           <div>Сохранить копию<span>${days===null?"ещё ни разу":days===0?"сохранена сегодня":`последняя ${days} ${plural(days,"день","дня","дней")} назад`}</span></div>
@@ -3934,13 +3993,19 @@ function openMore(){
        родительского режима теряется: незачем прятать цену, если рядом
        кнопка «Выплатить», которой можно обнулить долг перед собой. */
     const gate=(fn,what)=>()=>{ close(); isParent()?fn():needParent(what); };
-    b.querySelector("#moPay").onclick=gate(openPayout,"Отметка выплаты");
-    b.querySelector("#moSync").onclick=gate(openSync,"Настройки синхронизации");
-    b.querySelector("#moParent").onclick=()=>{ close(); openParentMode(); };
-    b.querySelector("#moGoal").onclick=gate(()=>openGoal($("#moreBtn")),"Цель на неделю");
+    /* На детском устройстве этих строк нет — вешать обработчики не на что. */
+    const on=(id,fn)=>{ const el=b.querySelector(id); if(el) el.onclick=fn; };
+    on("#moPay",gate(openPayout,"Отметка выплаты"));
+    on("#moSync",gate(openSync,"Настройки синхронизации"));
+    const mp=b.querySelector("#moParent");
+    if(mp) mp.onclick=()=>{ close(); openParentMode(); };
+    const mr=b.querySelector("#moRole");
+    if(mr) mr.onclick=()=>{ close(); askDeviceRole(); };
+    on("#moGoal",gate(()=>openGoal($("#moreBtn")),"Цель на неделю"));
+    on("#moRules",()=>{ close(); openRules(); });
     b.querySelector("#moHow").onclick=()=>{ close(); openHowTo(); };
-    b.querySelector("#moCats").onclick=gate(restoreCats,"Возврат направлений");
-    b.querySelector("#moOne").onclick=gate(openOneOff,"Разовое начисление");
+    on("#moCats",gate(restoreCats,"Возврат направлений"));
+    on("#moOne",gate(openOneOff,"Разовое начисление"));
     b.querySelector("#moBk").onclick=()=>{ exportData(); close(); };
   });
 }
@@ -3999,7 +4064,16 @@ function syncPack(){
        записываются на папином устройстве. */
     payouts:prefs.payouts||[],
     weekGoal:prefs.weekGoal, weekGoalRub:prefs.weekGoalRub,
-    pin:prefs.pin||null, wonWeek:prefs.wonWeek};
+    /* Последствие ставит папа со своего телефона — сын должен увидеть его
+       у себя, иначе правило существует только на словах. */
+    penalty:prefs.penalty||null,
+    /* ПИН по сети больше не ездит. Раньше отправлялся специально — чтобы
+       доехать до телефона сына и папа мог войти там в родительский режим.
+       Но база открытая: кто знает код семьи, тот читал ПИН строкой. Теперь
+       приёмка только на папином телефоне (роль устройства, см. deviceRole),
+       и возить нечего. Отправляем null — так ключ в базе удаляется,
+       и старый ПИН оттуда вычищается при первой же синхронизации. */
+    pin:null, wonWeek:prefs.wonWeek};
 }
 /* Возраст состояния дела. Отдельного поля времени не заводим: всё, что
    меняет дело, и так оставляет метку — отметили, приняли, вернули,
@@ -4040,7 +4114,8 @@ function syncApply(d){
     }
     if(typeof d.weekGoal==="number") prefs.weekGoal=d.weekGoal;
     if(typeof d.weekGoalRub==="number") prefs.weekGoalRub=d.weekGoalRub;
-    if(typeof d.pin==="string") prefs.pin=d.pin;
+    /* Входящий ПИН игнорируем: он локальный и приезжать не должен. */
+    if("penalty" in d) { if(d.penalty) prefs.penalty=d.penalty; else delete prefs.penalty; }
     if(typeof d.wonWeek==="string") prefs.wonWeek=d.wonWeek;
     save(); savePrefs();
   } finally { SYNC.applying=false; }
@@ -4307,6 +4382,165 @@ function levelOf(all){
    Сам режим включается на устройстве и живёт до выключения: на
    папином телефоне его можно не выключать вовсе, на детском он
    просто никогда не включается. */
+/* ---------- Правила и потери ----------
+   Не наказание за проступок, а правило, написанное заранее: ребёнок видит
+   список до того, как нарушил, а не после. У каждого последствия есть выход —
+   «можно снять раньше»; без выхода наказание превращается в «всё равно уже
+   всё плохо», и остаток дня работать он перестаёт.
+
+   Правила приходят из сборки, как каталог: сын их переписать не может.
+   Применяет и снимает только папа, руками. Автоматики нет нарочно —
+   приложение знает, что наряд не сдан, но не знает, что вы уехали к бабушке
+   и телефон сел. Один ошибочный автоматический штраф, и договору конец.
+
+   Деньги здесь не участвуют: долг за крышку от проступков не растёт.
+   Единственное исключение — «соврал о сделанном», и оно про честность счёта,
+   а не про кару.
+
+   until: "morning" — до 8 утра, "today" — до конца дня, "" — без срока
+   (такое правило не «применяют», оно про то, что папа делает руками). */
+const RULES=[
+  {id:"late",  what:"Наряд не сдан до 20:00",        lose:"Телефон до утра",
+   until:"morning", back:"Сдать сегодняшний наряд до 21:00",
+   note:"Второй раз подряд — на выходные"},
+  {id:"rude",  what:"Грубость, крик, хлопнул дверью", lose:"День без экрана",
+   until:"today",   back:"Извинился сам, до вечера",
+   note:"Считается в тот же день"},
+  {id:"skip",  what:"Пропустил карате без причины",   lose:"Вечер игр отменён",
+   until:"today",   back:"",
+   note:"Причина — болезнь или дела, а не «не хочу»"},
+  {id:"lie",   what:"Соврал о сделанном",             lose:"Дело не в счёт",
+   until:"",        back:"Переделать и сдать заново",
+   note:"Дело возвращается и не оплачивается"},
+  {id:"break", what:"Испортил чужое",                 lose:"Чинит или возмещает",
+   until:"",        back:"",
+   note:"Долг за крышку это не меняет"}
+];
+const ruleById = id => RULES.find(r=>r.id===id)||null;
+function penUntil(kind){
+  const d=new Date();
+  if(kind==="today"){ d.setHours(23,59,0,0); return d.getTime(); }
+  if(kind==="morning"){ d.setDate(d.getDate()+1); d.setHours(8,0,0,0); return d.getTime(); }
+  return 0;
+}
+/* Действующее последствие — одно за раз: два сразу ребёнок не удержит,
+   да и снимать их пришлось бы по отдельности. Новое заменяет старое. */
+function penActive(){
+  const p=prefs.penalty;
+  if(!p||!p.rule) return null;
+  if(p.until && Date.now()>p.until){ delete prefs.penalty; savePrefs(); return null; }
+  return p;
+}
+function penApply(r){
+  prefs.penalty={rule:r.id, at:Date.now(), until:penUntil(r.until)};
+  savePrefs(); render();
+}
+function penClear(){ delete prefs.penalty; savePrefs(); render(); }
+function penWhen(p){
+  if(!p.until) return "снимает папа";
+  const d=new Date(p.until), h=String(d.getHours()).padStart(2,"0"),
+        m=String(d.getMinutes()).padStart(2,"0");
+  const today=iso(d)===todayISO();
+  return today ? `до конца дня, ${h}:${m}` : `снимется завтра в ${h}:${m}`;
+}
+function renderPenalty(){
+  const box=$("#penBox"); if(!box) return;
+  box.innerHTML="";
+  const p=penActive(); if(!p) return;
+  const r=ruleById(p.rule); if(!r) return;
+  const el=document.createElement("div");
+  el.className="pen";
+  el.innerHTML=`<div class="t">Сейчас действует: ${r.lose.toLowerCase()}</div>
+    <div class="s">${r.what.toLowerCase()} · ${penWhen(p)}</div>
+    ${r.back?`<div class="back">Можно снять раньше: ${r.back.toLowerCase()} — <b>папа снимет</b></div>`:""}`;
+  if(isParent()){
+    const act=document.createElement("div"); act.className="act";
+    const b=document.createElement("button"); b.type="button"; b.textContent="Снять";
+    b.onclick=penClear;
+    act.appendChild(b); el.appendChild(act);
+  }
+  box.appendChild(el);
+}
+/* Список правил. Виден обоим: в этом и смысл — знать заранее.
+   Кнопка «Применить» только у папы и только у правил со сроком. */
+function openRules(){
+  modal((b,close)=>{
+    const p=penActive(), r=p&&ruleById(p.rule);
+    b.innerHTML=`<h4>Правила · что теряется</h4>
+      ${r?`<div class="pen" style="margin-bottom:14px"><div class="t">Сейчас действует: ${r.lose.toLowerCase()}</div>
+        <div class="s">${r.what.toLowerCase()} · ${penWhen(p)}</div></div>`:""}
+      <div class="rules"></div>
+      <div class="modalfoot">
+        ${r&&isParent()?`<button class="btn ghost" id="rlOff">Снять последствие</button>`:""}
+        <button class="btn" id="rlClose">Закрыть</button>
+      </div>`;
+    const list=b.querySelector(".rules");
+    RULES.forEach(x=>{
+      const row=document.createElement("div"); row.className="rl";
+      row.innerHTML=`<div class="a">${x.what}<span>${x.note||""}</span></div>
+        <div class="b">${x.lose}</div>`;
+      if(isParent() && x.until){
+        const btn=document.createElement("button");
+        btn.type="button"; btn.textContent="Применить";
+        btn.onclick=()=>{ penApply(x); close(); };
+        row.querySelector(".b").appendChild(btn);
+      }
+      list.appendChild(row);
+    });
+    b.querySelector("#rlClose").onclick=close;
+    const off=b.querySelector("#rlOff");
+    if(off) off.onclick=()=>{ penClear(); close(); };
+  });
+}
+
+/* ---------- Чей это телефон ----------
+   До 16 сентября оба устройства были равны, а отличались только тем, введён
+   ли ПИН. Из-за этого ПИН приходилось возить через открытую базу.
+
+   Теперь у устройства есть роль, и она никуда не ездит — живёт только здесь.
+   На телефоне сына родительского режима нет вовсе: не «защищён ПИНом»,
+   а отсутствует. Ломать нечего.
+
+   Роль выбирается один раз. Сменить её можно только из родительского режима,
+   то есть на папином телефоне; на детском обратного пути нет — только стереть
+   приложение и настроить заново, а это видно по пустому списку. */
+const ROLE_PARENT="parent", ROLE_CHILD="child";
+const deviceRole = () => prefs.role===ROLE_PARENT||prefs.role===ROLE_CHILD ? prefs.role : null;
+const isChildDevice = () => deviceRole()===ROLE_CHILD;
+function setDeviceRole(r){
+  prefs.role=r;
+  if(r===ROLE_CHILD){
+    /* На детском устройстве ПИН не нужен и хранить его незачем. */
+    delete prefs.pin; setParent(false);
+  }
+  savePrefs(); render();
+}
+/* Разовый вопрос при первом запуске новой версии. */
+function askDeviceRole(){
+  modal((b,close)=>{
+    b.innerHTML=`<h4>Чей это телефон?</h4>
+      <p>Спрашиваю один раз. От ответа зависит, показывать ли на этом
+      устройстве родительский режим — тот, где принимают дела и меняют цены.</p>
+      <div class="mrow" style="margin-top:0;padding-top:0;border-top:0">
+        <button class="mbtn" id="rParent" type="button">
+          <svg class="i" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>
+          <div>Мой<span>принимаю дела, меняю цены — нужен ПИН</span></div>
+        </button>
+        <button class="mbtn" id="rChild" type="button">
+          <svg class="i" viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8z"/></svg>
+          <div>Сына<span>отмечает дела и отправляет мне на приёмку</span></div>
+        </button>
+      </div>`;
+    b.querySelector("#rParent").onclick=()=>{
+      setDeviceRole(ROLE_PARENT); close();
+      /* Старый ПИН лежал в открытой базе — считаем его известным. */
+      if(hasPin()) tell("ПИН раньше хранился в общей базе и мог быть виден. "+
+        "Смените его: «⋯» → «Родительский режим».",{title:"Смените ПИН"});
+    };
+    b.querySelector("#rChild").onclick=()=>{ setDeviceRole(ROLE_CHILD); close(); };
+  });
+}
+
 const KEY_PARENT="cashdo_parent_v1";
 let PARENT=false;
 function loadParent(){
@@ -4317,7 +4551,9 @@ function setParent(on){
   try{ on ? localStorage.setItem(KEY_PARENT,"1") : localStorage.removeItem(KEY_PARENT) }catch(e){}
   render();
 }
-const isParent = () => PARENT;
+/* На детском устройстве родительский режим недоступен в принципе,
+   даже если метка осталась от прошлой версии. */
+const isParent = () => PARENT && !isChildDevice();
 const PIN_LEN=6;
 const hasPin = () => typeof prefs.pin==="string" && prefs.pin.length===PIN_LEN;
 
@@ -4641,10 +4877,12 @@ function openTomorrow(){
 function renderWeekSummary(){
   const box=$("#weekSumBox"); if(!box) return;
   box.innerHTML=""; box.hidden=true;
-  const dow=new Date().getDay();
-  if(dow!==1 && dow!==2) return;                 /* только понедельник и вторник */
-  if(prefs.weekSumSeen===weekKey()) return;      /* уже посмотрели */
+  if(prefs.weekSumSeen===weekKey()) return;      /* уже закрыли крестиком */
   const start=weekStart().getTime();
+  /* Раньше карточка висела понедельник и вторник по календарю. Теперь она
+     закрывается делом: как только на новой неделе отмечено первое — прошлая
+     неделя больше не главная новость, смотрим вперёд. */
+  if(state.tasks.some(t=>t.doneAt && t.doneAt>=start)) return;
   const from=start-7*864e5;
   const ops=state.tasks.filter(t=>t.ok&&t.okAt&&t.okAt>=from&&t.okAt<start);
   if(!ops.length) return;                        /* пустую неделю не празднуем */
@@ -4659,8 +4897,14 @@ function renderWeekSummary(){
   const goalTxt = goal<=0 ? "" : (sum>=goal
     ? `Цель ${rub(goal)} ₽ — взята`
     : `До цели не хватило ${rub(goal-sum)} ₽`);
+  /* Цвет по результату, а не всегда зелёный. Зелёная карточка победы с текстом
+     «до цели не хватило 2 040 ₽» спорила сама с собой. Порог 60 % — это
+     «больше половины», видно, что старался; ниже цветом не укоряем: прошлую
+     неделю уже не исправить. */
+  const WSUM_CLOSE=0.6;
+  const tone = goal<=0 ? "" : (sum>=goal ? "" : (sum>=goal*WSUM_CLOSE ? " close" : " far"));
   const el=document.createElement("div");
-  el.className="wsum";
+  el.className="wsum"+tone;
   el.innerHTML=`<h5>Итог прошлой недели</h5>
     <div class="big">${rub(sum)} ₽</div>
     <div class="li">${ops.length} ${plural(ops.length,"дело","дела","дел")} принято${
@@ -4989,13 +5233,20 @@ function skinShiftHtml(m){
   const wkNote = isWeekend()
     ? `<div class="hintbox" style="background:var(--wk-bg);color:var(--wk-fg)">Выходной — в наряде есть крупное дело. За день его реально сделать, и это сразу несколько дней нормы.</div>`
     : "";
+  /* Деньги приходят после приёмки, поэтому «Сегодня заработано» — это ноль,
+     пока папа не посмотрел. Ноль честный, но ребёнок, сделавший два дела,
+     видел на экране только его: правда про 300 ₽ на проверке пряталась
+     строчкой ниже мелким шрифтом. Теперь она стоит второй цифрой того же
+     роста — смысл слова «заработано» не меняется, а труд виден. */
   return `<div class="blk todayearn">
       <div class="l">Сегодня заработано</div>
       <div class="v">${rub(m.today)} ₽</div>
+      ${pendSum>0?`<div class="l wl">Ждут приёмки</div>
+      <div class="v wv">${rub(pendSum)} ₽</div>`:""}
       <div class="s">Смена закроется на <b>${rub(full)} ₽</b>, если сделать весь наряд</div>
       ${pendSum>0?`<div class="brkdn">
-        <div><span>принято</span><span>${rub(m.today)} ₽</span></div>
-        <div><span>на проверке</span><span>${rub(pendSum)} ₽</span></div>
+        <div><span>принято папой</span><span>${rub(m.today)} ₽</span></div>
+        <div><span>ждёт приёмки</span><span>${rub(pendSum)} ₽</span></div>
         <div><span>осталось в наряде</span><span>${rub(restSum)} ₽</span></div>
       </div>`:""}
       ${wkNote}
