@@ -6532,10 +6532,24 @@ function renderSkin(m){
    Ничего нового не хранится: всё считается на лету из тех же задач.
    Значит, экран не может разойтись с деньгами и не ломает бэкапы —
    старая копия данных откроется и покажет свои бейджи. */
+/* Когда дело было СДЕЛАНО, а не когда принято.
+
+   Всё ниже считалось по `okAt` — времени приёмки. Это чужой день:
+   сын мыл посуду в среду, отец принял в воскресенье — в серию попадало
+   воскресенье. У них так и выходит: за две недели дела делались в разные
+   дни, а приёмок было три. Серия «дней подряд» показывала расписание отца,
+   а не работу сына.
+
+   Особенно нелепо было с «Ранней пташкой» и «Поздним сеансом»: бейдж
+   за дело до 9 утра доставался, если ДО 9 УТРА НАЖАЛ «ПРИНЯТО» ОТЕЦ.
+
+   Считаем по `doneAt`; `okAt` остаётся запасным — у старых записей
+   отметки о выполнении может не быть. */
+const achWhen = t => t.doneAt || t.okAt;
 function achStats(){
-  const done=state.tasks.filter(t=>t.ok&&t.okAt);
+  const done=state.tasks.filter(t=>t.ok&&achWhen(t));
   const all=earnedSum(state.tasks.filter(t=>t.done));
-  const days=[...new Set(done.map(t=>iso(new Date(t.okAt))))].sort();
+  const days=[...new Set(done.map(t=>iso(new Date(achWhen(t)))))].sort();
   const set=new Set(days);
   /* Текущая серия: считаем назад от сегодня. Если сегодня ещё ничего
      не сделано, серия не рвётся до конца дня — начинаем со вчера. */
@@ -6549,12 +6563,12 @@ function achStats(){
     best=Math.max(best,run); prev=t;
   }
   const byDay={};
-  done.forEach(t=>{ const k=iso(new Date(t.okAt)); byDay[k]=(byDay[k]||0)+(t.earned||0); });
+  done.forEach(t=>{ const k=iso(new Date(achWhen(t))); byDay[k]=(byDay[k]||0)+(t.earned||0); });
   const bestDay=Math.max(0,...Object.values(byDay));
   return {done,all,days,cur,best,bestDay,
     cats:new Set(done.map(t=>t.cat)).size,
-    early:done.some(t=>new Date(t.okAt).getHours()<9),
-    late:done.some(t=>new Date(t.okAt).getHours()>=21)};
+    early:done.some(t=>new Date(achWhen(t)).getHours()<9),
+    late:done.some(t=>new Date(achWhen(t)).getHours()>=21)};
 }
 function achList(s){
   const L=(icon,nm,ds,now,need)=>({icon,nm,ds,now,need,got:now>=need});
