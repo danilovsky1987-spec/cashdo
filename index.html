@@ -3739,6 +3739,16 @@ async function init(){
   await loadSnaps();
   dailySnap();
 
+  /* Предупреждаем сразу, а не после того, как он потратит вечер на дела,
+     которые не сохранятся. */
+  if(!(await хранилищеРаботает())){
+    tell("Это окно не может ничего запомнить: отметки пропадут, как только "+
+      "приложение закроется. Так бывает, если файл открыт прямо из «Файлов» "+
+      "или включён приватный режим. Откройте приложение по ссылке с сайта "+
+      "и добавьте её на экран «Домой».",
+      {title:"Отметки не сохранятся"});
+  }
+
   /* При переключении вкладки возвращаемся наверх. Без этого страница
      оставалась прокрученной на прежнем месте, новый экран открывался
      где-то выше — и со стороны выглядело, будто нажатие не сработало. */
@@ -3844,7 +3854,31 @@ async function init(){
    Файл, открытый на телефоне напрямую из «Файлов», иногда не даёт
    странице ничего запомнить: приложение работает, отметки ставятся,
    а после закрытия всё пусто. Молча терять данные нельзя — проверяем
-   запись сразу при запуске и честно предупреждаем, если не выходит. */
+   запись сразу при запуске и честно предупреждаем, если не выходит.
+
+   18 сентября выяснилось, что от этого раздела остался **только этот
+   комментарий**: сама проверка когда-то потерялась при правке. Приложение
+   молча делало вид, что помнит. Возвращено.
+
+   Проверяем тем же путём, которым пользуется Store: если есть
+   window.storage — через него, иначе через localStorage. Проверять
+   не тот путь, которым пишешь, бессмысленно. */
+async function хранилищеРаботает(){
+  const ключ="__проба_записи__";
+  if(window.storage){
+    try{
+      await window.storage.set(ключ,"1");
+      const r=await window.storage.get(ключ);
+      if(r&&r.value==="1"){ try{ await window.storage.remove(ключ) }catch(e){} return true; }
+    }catch(e){}
+  }
+  try{
+    localStorage.setItem(ключ,"1");
+    const ok=localStorage.getItem(ключ)==="1";
+    localStorage.removeItem(ключ);
+    return ok;
+  }catch(e){ return false; }
+}
 /* ---------- Вопрос «да / нет» ----------
    Системный диалог подтверждения в приложении с экрана «Домой» на
    айфоне показывается не всегда — на этом уже спотыкались с prompt(),
@@ -4143,10 +4177,24 @@ function renderHistory(){
   const paid=prefs.paidTotal||0;
   const wait=rows.filter(r=>r.kind==="wait").reduce((s,r)=>s+r.sum,0);
   if(cnt) cnt.textContent=rows.length?rows.length:"";
+  /* Итоги считаются по той же модели, что и на главном экране:
+     **сначала долг, потом на руки**. Здесь стояло «осталось выдать
+     = заработано − выплачено», то есть 1 880 ₽ при непогашенной крышке.
+     Главный экран в это же время говорил «идёт в счёт крышки, осталось
+     10 120 ₽». Две несовместимые модели денег в одном приложении —
+     ровно то, что чинили в renderMoney 15 сентября; в Истории осталось.
+     Отец мог открыть Историю и решить, что должен сыну эти деньги. */
+  const свободно=Math.max(0,earned-DEBT.total);
+  const кВыдаче=Math.max(0,свободно-paid);
   tot.innerHTML=`<div class="panel histtot">
     <div><span>заработано всего</span><b>${rub(earned)} ₽</b></div>
-    <div><span>выплачено</span><b>${rub(paid)} ₽</b></div>
-    <div><span>осталось выдать</span><b class="g">${rub(Math.max(0,earned-paid))} ₽</b></div>
+    ${earned<DEBT.total
+      /* «Идёт в счёт крышки» повторяло бы «заработано всего» цифра
+         в цифру: пока долг не закрыт, в счёт идёт ровно всё. Одна
+         и та же сумма дважды подряд читается как ошибка. */
+      ? `<div><span>осталось по договору</span><b class="g">${rub(DEBT.total-earned)} ₽</b></div>`
+      : `<div><span>выплачено</span><b>${rub(paid)} ₽</b></div>
+         <div><span>осталось выдать</span><b class="g">${rub(кВыдаче)} ₽</b></div>`}
     ${wait?`<div><span>ждёт приёмки</span><b class="w">${rub(wait)} ₽</b></div>`:""}
   </div>`;
   box.innerHTML="";
@@ -4520,7 +4568,11 @@ function dedupeTasks(){
   let n=0;
   поТексту.forEach(список=>{
     if(список.length<2) return;
-    лучший(список).slice(1).forEach(t=>{ t.del=Date.now(); touch(t); n++; });
+    /* Помечаем, что в корзину дело отправил именно дедуп. Метка нужна
+       страховке ниже: без неё она возвращала **любое** удалённое дело,
+       и удаление из каталога отменялось само собой — отец выбрасывал
+       дело, а оно приходило обратно. Нашлось симуляцией двух телефонов. */
+    лучший(список).slice(1).forEach(t=>{ t.del=Date.now(); t.dedup=t.del; touch(t); n++; });
   });
 
   /* Страховка от встречного схлопывания.
@@ -4531,7 +4583,9 @@ function dedupeTasks(){
      они есть — достаём лучшую обратно. Дело из каталога пропасть не должно. */
   const вКорзине=new Map();
   state.tasks.forEach(t=>{
-    if(!t.del || t.log || isOne(t) || isMine(t)) return;
+    /* Только то, что убрал дедуп. Дело, выброшенное человеком руками,
+       возвращать нельзя: он так решил. */
+    if(!t.del || !t.dedup || t.log || isOne(t) || isMine(t)) return;
     if(!вКорзине.has(t.text)) вКорзине.set(t.text,[]);
     вКорзине.get(t.text).push(t);
   });
@@ -4539,7 +4593,7 @@ function dedupeTasks(){
   вКорзине.forEach((список,текст)=>{
     if(поТексту.has(текст) && поТексту.get(текст).some(t=>!t.del)) return;
     const t=лучший(список)[0];
-    delete t.del; touch(t); вернули++;
+    delete t.del; delete t.dedup; touch(t); вернули++;
   });
   if(n||вернули) save();
   return n;
@@ -4607,20 +4661,60 @@ async function syncPull(quiet){
     return null;
   }
 }
-async function syncPush(){
+/* Запись в базу — с проверкой, что нас никто не опередил.
+
+   Раньше здесь был простой PUT: он заменяет всю комнату целиком, не глядя,
+   что там сейчас. Опасное окно — до двадцати секунд (столько между
+   опросами сервера): сын отмечает дело, отец в эти же секунды принимает
+   другое, и чей пакет ушёл вторым — тот и затёр чужую работу.
+
+   База это умеет разруливать. Читаем с заголовком X-Firebase-ETag,
+   пишем с if-match. Если между чтением и записью кто-то успел —
+   сервер отвечает 412 и **сразу отдаёт свежее содержимое**: вливаем его
+   к себе и пробуем снова. Проверено на пробной комнате: и обычный случай,
+   и первая запись в пустую (там ETag равен "null_etag"). */
+const PUSH_ПОПЫТОК=3;
+async function syncPush(попытка){
   if(!syncOn()||SYNC.applying) return;
+  попытка=попытка||0;
   syncMark("busy","Отправляю…");
   try{
-    SYNC.rev++;
+    /* 1. Что сейчас на сервере и какой у этого «отпечаток». */
+    const r0=await fetch(syncEndpoint(),{cache:"no-store",
+      headers:{"X-Firebase-ETag":"true"}});
+    if(!r0.ok) throw new Error("сервер ответил "+r0.status);
+    const отпечаток=r0.headers.get("ETag")||"null_etag";
+    const было=await r0.json();
+
+    /* 2. Если там свежее нашего — сперва вливаем к себе, чтобы не
+       отправить назад устаревшую картину. */
+    if(было && typeof было.rev==="number" && было.rev>SYNC.rev){
+      SYNC.rev=было.rev; syncApply(было.data);
+    }
+    SYNC.rev=Math.max(SYNC.rev, (было&&было.rev)||0)+1;
+
+    /* 3. Пишем — но только если за это время ничего не изменилось. */
     const body={data:syncPack(), rev:SYNC.rev, updated_at:new Date().toISOString()};
     const r=await fetch(syncEndpoint(),{method:"PUT",
-      headers:{"Content-Type":"application/json"},
+      headers:{"Content-Type":"application/json","if-match":отпечаток},
       body:JSON.stringify(body)});
+
+    if(r.status===412){
+      /* Кто-то опередил. В теле ответа — то, что там теперь лежит. */
+      const свежее=await r.json().catch(()=>null);
+      if(свежее && свежее.data){
+        if(typeof свежее.rev==="number") SYNC.rev=свежее.rev;
+        syncApply(свежее.data);
+      }
+      if(попытка+1<PUSH_ПОПЫТОК) return syncPush(попытка+1);
+      syncMark("err","Второй телефон пишет одновременно. Отправлю позже.");
+      return;
+    }
     if(!r.ok) throw new Error("сервер ответил "+r.status);
     syncSaveCfg();
     syncMark("ok","Сохранено. Обновление №"+SYNC.rev);
   }catch(e){
-    syncMark("err","Не отправилось: "+e.message+". Попробую позже.");
+    syncMark("err","Не отправилось: "+e.message+". Данные в устройстве целы.");
   }
 }
 /* Пока сын щёлкает дела подряд, отправлять на каждое незачем —
@@ -5581,8 +5675,14 @@ function checkStats(){
 function moneyStats(){
   const ops=state.tasks.filter(t=>t.ok&&t.okAt&&(t.earned||0)>0);
   const all=earnedSum(ops);
+  /* По дням и неделям раскладываем по дню РАБОТЫ, а не приёмки —
+     как и в достижениях. «Лучший день» сын читает как «день, когда
+     я много сделал»; если отец принял недельную пачку в воскресенье,
+     по `okAt` лучшим оказывалось воскресенье, в которое он не делал
+     ничего. Общая сумма от этого не меняется — меняется только то,
+     к какому дню она отнесена. */
   const byDay={};
-  ops.forEach(t=>{ const k=iso(new Date(t.okAt)); byDay[k]=(byDay[k]||0)+(t.earned||0); });
+  ops.forEach(t=>{ const k=iso(new Date(achWhen(t))); byDay[k]=(byDay[k]||0)+(t.earned||0); });
   const days=Object.keys(byDay);
   let bestK=null,bestV=0;
   days.forEach(k=>{ if(byDay[k]>bestV){ bestV=byDay[k]; bestK=k; } });
@@ -5590,7 +5690,7 @@ function moneyStats(){
   const weeks=[];
   for(let i=5;i>=0;i--){
     const from=w0-i*7*864e5, to=from+7*864e5;
-    const inw=ops.filter(t=>t.okAt>=from&&t.okAt<to);
+    const inw=ops.filter(t=>achWhen(t)>=from&&achWhen(t)<to);
     weeks.push({from, sum:earnedSum(inw), n:inw.length, now:i===0});
   }
   const byCat={};
