@@ -4179,14 +4179,19 @@ function openMore(){
           <div>Родительский режим<span>${isParent()?"включён — можно менять цены и принимать дела"
             :(hasPin()?"выключен · нужен ПИН":"не настроен — придумайте ПИН")}</span></div>
         </button>`}
-        ${isParent()?`<button class="mbtn" id="moRole" type="button">
-          <svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.5 18.6h3"/></svg>
-          <div>Этот телефон<span>${deviceRole()===ROLE_CHILD?"сына — приёмки здесь нет":"мой — здесь принимаются дела"}</span></div>
-        </button>`:""}
         <button class="mbtn" id="moGoal" type="button">
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/></svg>
           <div>Цель на неделю<span>${rub(prefs.weekGoalRub||0)} ₽ · ${prefs.weekGoal} дел${isParent()?"":" · только папа"}</span></div>
         </button>`}
+        <!-- «Этот телефон» стоит ЗА пределами блока «только папа»:
+             весь тот блок скрыт на детском устройстве, и строка вместе
+             с ним. Именно так получалась ловушка — ошибочный выбор «Сына»
+             на папином телефоне отключал приёмку без возможности вернуть. -->
+        <button class="mbtn" id="moRole" type="button">
+          <svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.5 18.6h3"/></svg>
+          <div>Этот телефон<span>${deviceRole()===ROLE_CHILD
+            ? "сына — приёмки здесь нет" : "папин — здесь принимаются дела"}</span></div>
+        </button>
         <button class="mbtn" id="moTheme" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M20.2 14.4A8.6 8.6 0 0 1 9.6 3.8 8.6 8.6 0 1 0 20.2 14.4z"/></svg>
           <div>Тема<span>${state.dark?"сейчас тёмная":"сейчас светлая"}</span></div>
@@ -4243,6 +4248,13 @@ function openMore(){
     on("#moSync",gate(openSync,"Настройки синхронизации"));
     const mp=b.querySelector("#moParent");
     if(mp) mp.onclick=()=>{ close(); openParentMode(); };
+    /* Строка видна всем, а не только родителю, и вот почему.
+       Раньше её показывали под `isParent()`, а `isParent()` на детском
+       устройстве всегда ложь. Значит один ошибочный тап «Сына» на папином
+       телефоне выключал приёмку **навсегда**: вернуть роль было неоткуда,
+       кроме сброса всех данных. Ловушка без выхода — так нельзя.
+       Открывать её безопасно: сама по себе смена роли ничего не даёт,
+       в родительский режим всё равно пускает только ПИН. */
     const mr=b.querySelector("#moRole");
     if(mr) mr.onclick=()=>{ close(); askDeviceRole(); };
     on("#moGoal",gate(()=>openGoal($("#moreBtn")),"Цель на неделю"));
@@ -5022,19 +5034,25 @@ function setDeviceRole(r){
   savePrefs(); render();
 }
 /* Разовый вопрос при первом запуске новой версии. */
+/* Вопрос про телефон видят оба: отец на своём устройстве и сын на своём.
+   Написан он был от лица отца — «Мой», «принимаю дела», «отправляет мне».
+   Сын, открыв приложение первым, читал чужую реплику и вполне мог нажать
+   «Мой». Поэтому обе кнопки теперь в третьем лице и одинаково понятны
+   любому, кто держит телефон в руках. */
 function askDeviceRole(){
   modal((b,close)=>{
     b.innerHTML=`<h4>Чей это телефон?</h4>
       <p>Спрашиваю один раз. От ответа зависит, показывать ли на этом
-      устройстве родительский режим — тот, где принимают дела и меняют цены.</p>
+      устройстве родительский режим — тот, где принимают дела и меняют цены.
+      Ответ можно будет поменять: «⋯» → «Этот телефон».</p>
       <div class="mrow" style="margin-top:0;padding-top:0;border-top:0">
         <button class="mbtn" id="rParent" type="button">
           <svg class="i" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>
-          <div>Мой<span>принимаю дела, меняю цены — нужен ПИН</span></div>
+          <div>Папин<span>принимает дела и меняет цены — нужен ПИН</span></div>
         </button>
         <button class="mbtn" id="rChild" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8z"/></svg>
-          <div>Сына<span>отмечает дела и отправляет мне на приёмку</span></div>
+          <div>Сына<span>отмечает дела и отправляет папе на приёмку</span></div>
         </button>
       </div>`;
     b.querySelector("#rParent").onclick=()=>{
