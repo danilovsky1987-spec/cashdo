@@ -2339,12 +2339,12 @@ function openPriceEdit(t){
       </div>`;
     const inp=b.querySelector("#priceInp");
     setTimeout(()=>inp.focus(),0);
-    b.querySelector("#priceDef").onclick=()=>{ delete t.price; save(); render(); close(); };
+    b.querySelector("#priceDef").onclick=()=>{ delete t.price; touch(t); save(); render(); close(); };
     b.querySelector("#priceSave").onclick=()=>{
       const v=parseInt(inp.value,10);
       if(isFinite(v)&&v>=0) t.price=v; else delete t.price;
       t.noSuggest = b.querySelector("#priceNo").checked;
-      save(); render(); close();
+      touch(t); save(); render(); close();
     };
     inp.onkeydown=e=>{ if(e.key==="Enter") b.querySelector("#priceSave").click(); };
   });
@@ -2520,7 +2520,9 @@ function makeRow(t,{showCat=false}={}){
         " — "+cooldownWord(t)+".",{title:"Ещё рано"}); return; }
     t.done=!t.done;
     if(t.done){ t.doneAt=Date.now(); markBackFixed(t); clearBack(t); }
-    else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; }
+    /* Снятая галочка — тоже правка, и её надо донести до второго
+       телефона: без метки она «моложе» не становится и не доезжает. */
+    else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; touch(t); }
     save();render();
   };
   row.querySelector(".cbx").onchange=toggle;
@@ -2607,7 +2609,7 @@ function openCatPick(t){
       btn.innerHTML=`<span class="em2"></span><span class="nm2"></span>`;
       btn.querySelector(".em2").textContent=c.emoji;
       btn.querySelector(".nm2").textContent=c.name+(c.id===t.cat?" · сейчас здесь":"");
-      btn.onclick=()=>{t.cat=c.id;save();close();render()};
+      btn.onclick=()=>{t.cat=c.id;touch(t);save();close();render()};
       ml.appendChild(btn);
     });
     b.querySelector(".modalfoot button").onclick=close;
@@ -3228,7 +3230,7 @@ function renderBin(){
       <button class="mini back">Вернуть</button>
       <button class="mini red wipe">Стереть</button>`;
     r.querySelector(".bt").textContent=cat.emoji+" "+t.text;
-    r.querySelector(".back").onclick=()=>{delete t.del;save();render()};
+    r.querySelector(".back").onclick=()=>{delete t.del;touch(t);save();render()};
     r.querySelector(".wipe").onclick=async()=>{
       if(await ask("Стереть «"+t.text+"» окончательно? Это нельзя отменить.",
         {title:"Стереть насовсем", ok:"Стереть", danger:true})){
@@ -3934,6 +3936,7 @@ function addProposal(text,ask,note){
 }
 function acceptProposal(t,price){
   t.price=Math.max(0,Math.round(price)||0);
+  touch(t);
   delete t.hold;
   t.prop.ok=Date.now(); t.prop.price=t.price;
   save(); render();
@@ -3943,7 +3946,7 @@ function rejectProposal(t,note){
      не заглядывает. Дело остаётся в списке с ответом папы и ценой ноль,
      то есть в наряд не попадёт и денег не принесёт. Надоест — выбросит сам. */
   delete t.hold;
-  t.price=0;
+  t.price=0; touch(t);
   t.prop.no=Date.now(); t.prop.c=(note||"").trim().slice(0,300);
   save(); render();
 }
@@ -4346,9 +4349,18 @@ function syncPack(){
    выбросили. Берём самую свежую. Дела из старых копий без меток
    считаются самыми старыми и уступают. */
 function taskStamp(t){
-  return Math.max(t.doneAt||0, t.okAt||0, t.del||0,
+  return Math.max(t.doneAt||0, t.okAt||0, t.del||0, t.edAt||0,
                   (t.back&&t.back.at)||0, bornAt(t));
 }
+/* Отметка правки. Нужна для того, что метки времени не оставляет:
+   смена цены, направления, текста, признака «не предлагать».
+
+   Без неё обмен между телефонами молча терял правки. Папа менял цену
+   у себя — `taskStamp` не двигался, слияние считало обе версии
+   одинаково свежими и оставляло свою, то есть **у сына навсегда
+   оставалась старая цена**. А цена — часть договора, и расходиться
+   она не имеет права. Нашлось симуляцией двух телефонов, `dva-telefona.js`. */
+function touch(t){ if(t) t.edAt=Date.now(); return t; }
 /* Сливаем по делам, а не пачкой: у каждой стороны берём ту версию дела,
    с которой позже что-то произошло. Затереть чужую отметку целым
    списком больше нечем. */
@@ -5932,6 +5944,12 @@ function reopenTask(t){
   t.lastOk=t.okAt;
   delete t.done; delete t.doneAt; delete t.ok; delete t.okAt;
   delete t.earned; delete t.date; delete t.back;
+  /* Обязательно. Снимая отметки, дело теряет все свои метки времени
+     и для слияния становится «древним»: у второго телефона версия
+     с галочкой выглядит свежее и побеждает. В жизни это значило, что
+     принятое папой дело у сына так и висело отмеченным и ждущим приёмки.
+     Нашлось симуляцией двух телефонов. */
+  touch(t);
 }
 
 function suggestable(t){
@@ -6132,7 +6150,9 @@ function skinShiftFill(box){
           tell("Это дело уже засчитано — "+cooldownWord(t)+".",{title:"Ещё рано"}); return; }
         t.done=!t.done;
         if(t.done){ t.doneAt=Date.now(); markBackFixed(t); clearBack(t); }
-        else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; }
+        /* Снятая галочка — тоже правка, и её надо донести до второго
+       телефона: без метки она «моложе» не становится и не доезжает. */
+    else{ delete t.doneAt; delete t.ok; delete t.okAt; delete t.earned; touch(t); }
         save(); render();
       };
       const tt=document.createElement("div"); tt.className="t";
