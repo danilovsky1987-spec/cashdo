@@ -7225,7 +7225,47 @@ syncStart();
 <script>
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("sw.js").catch(()=>{});
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+
+      function сказатьОбновление(){
+        if(document.getElementById("swNew")) return;
+        const el=document.createElement("div");
+        el.id="swNew";
+        el.style.cssText="position:fixed;left:12px;right:12px;z-index:9999;"+
+          "bottom:calc(92px + env(safe-area-inset-bottom));"+
+          "background:#14181F;color:#fff;border-radius:14px;padding:12px 14px;"+
+          "display:flex;align-items:center;gap:12px;"+
+          "font:14px/1.35 'Segoe UI',system-ui,sans-serif;"+
+          "box-shadow:0 8px 28px rgba(0,0,0,.28)";
+        el.innerHTML='<span style="flex:1">Есть новая версия приложения</span>'+
+          '<button type="button" style="font:inherit;font-weight:700;border:0;'+
+          'border-radius:10px;padding:9px 15px;background:#fff;color:#14181F;'+
+          'cursor:pointer">Обновить</button>';
+        el.querySelector("button").onclick=()=>location.reload();
+        document.body.appendChild(el);
+      }
+
+      reg.addEventListener("updatefound",()=>{
+        const нов=reg.installing;
+        if(!нов) return;
+        нов.addEventListener("statechange",()=>{
+          /* controller есть — значит приложение уже работало на старой
+             версии, и человеку есть о чём сообщить. При самой первой
+             установке молчим: обновлять нечего. */
+          if(нов.state==="installed" && navigator.serviceWorker.controller)
+            сказатьОбновление();
+        });
+      });
+
+      /* Проверяем обновление при каждом возврате к приложению.
+         Телефон часто держит вкладку неделями, и без этого новая
+         версия ждала бы полного перезапуска. */
+      document.addEventListener("visibilitychange",()=>{
+        if(!document.hidden) reg.update().catch(()=>{});
+      });
+      setTimeout(()=>reg.update().catch(()=>{}), 3000);
+
+    }).catch(()=>{});
   });
 }
 </script>
