@@ -1006,6 +1006,39 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
     display:inline-block;padding-left:3px}
   .pend .ph[role="button"]:active{opacity:.6}
 
+  /* ---------- Экран «Договор» ----------
+     Шапка на главной показывает одну ближайшую точку, остальные — кружки
+     без названий. Здесь весь договор целиком: откуда сумма, все пять точек
+     с наградами и что будет, когда долг закроется. */
+  .dog .sum{background:var(--soft2);border-radius:14px;padding:13px 15px;margin-bottom:14px}
+  .dog .sum .big{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.1}
+  .dog .sum .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .dog .bar{height:7px;border-radius:4px;background:var(--edge);overflow:hidden;margin-top:11px}
+  .dog .bar i{display:block;height:100%;background:var(--done);border-radius:4px}
+  .dog .two{display:flex;justify-content:space-between;font-size:12.5px;
+    color:var(--muted);margin-top:6px}
+  .dog .two b{color:var(--ink);font-family:var(--display);font-weight:700}
+  .dog h5{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+    font-weight:700;margin:16px 0 8px}
+  .dog .pt{display:grid;grid-template-columns:26px 1fr auto;gap:11px;align-items:start;
+    padding:10px 0;border-bottom:1px solid var(--soft2)}
+  .dog .pt:last-of-type{border-bottom:0}
+  .dog .pt u{width:26px;height:26px;border-radius:50%;background:var(--edge);
+    display:grid;place-items:center;text-decoration:none;font-family:var(--display);
+    font-weight:700;font-size:12px;color:var(--muted)}
+  .dog .pt.done u{background:var(--done);color:#fff}
+  .dog .pt.now  u{background:none;border:2px solid var(--prA-fg);color:var(--prA-fg)}
+  .dog .pt b{display:block;font-size:14px;font-weight:600}
+  .dog .pt .gift{display:block;font-size:13px;color:var(--done);font-style:normal;margin-top:1px}
+  .dog .pt .when{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .dog .pt.now .when{color:var(--prA-fg)}
+  .dog .pt .v{font-family:var(--display);font-weight:700;font-size:13.5px;white-space:nowrap}
+  .dog .pt.done .v{color:var(--done)}
+  .dog .end{background:var(--good-bg);color:var(--good-fg);border-radius:12px;
+    padding:12px 14px;font-size:13px;margin-top:14px}
+  .dog .end b{display:block;font-size:14px;margin-bottom:2px}
+  .dog .why{font-size:13px;color:var(--muted);line-height:1.5;margin-top:12px}
+
   /* ---------- Экран «На проверке» ----------
      Сын отправляет дела и не видит, что с ними стало дальше: блок на
      главной показывает только очередь, а отказы исчезают, как только
@@ -4044,6 +4077,11 @@ function openMore(){
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4"/></svg>
           <div>Цель на неделю<span>${rub(prefs.weekGoalRub||0)} ₽ · ${prefs.weekGoal} дел${isParent()?"":" · только папа"}</span></div>
         </button>`}
+        <button class="mbtn" id="moDog" type="button">
+          <svg class="i" viewBox="0 0 24 24"><path d="M6 3.5h8.5L19 8v12.5H6z"/><path d="M14 3.5V8h5"/><path d="M8.8 12.4h6.4M8.8 15.8h4.2"/></svg>
+          <div>Договор<span>${(()=>{const a=earnedAll(), l=Math.max(0,DEBT.total-a);
+            return l>0 ? "12 000 ₽ за крышку · осталось "+rub(l)+" ₽" : "выполнен — крышка отработана";})()}</span></div>
+        </button>
         <button class="mbtn" id="moChk" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M4.5 12.4l4.2 4.2 10.8-10.8"/><path d="M19.5 12v6.4a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V7.6a2 2 0 0 1 2-2h7.6"/></svg>
           <div>На проверке<span>${(()=>{const s=checkStats();
@@ -4088,6 +4126,7 @@ function openMore(){
     const mr=b.querySelector("#moRole");
     if(mr) mr.onclick=()=>{ close(); askDeviceRole(); };
     on("#moGoal",gate(()=>openGoal($("#moreBtn")),"Цель на неделю"));
+    b.querySelector("#moDog").onclick=()=>{ close(); openContract(); };
     b.querySelector("#moChk").onclick=()=>{ close(); openCheck(); };
     on("#moRules",()=>{ close(); openRules(); });
     b.querySelector("#moHow").onclick=()=>{ close(); openHowTo(); };
@@ -4389,9 +4428,8 @@ const DEBT = {
   hold: 1200,               /* к 20 сентября меньше — телефон на хранение */
   /* gift — что именно даётся за точку. До 15 сентября этих строк в приложении
      не было: сын видел только название и сумму и не знал, ради чего старается.
-     Формулировки взяты из макета «Идеи для сына» от 10 сентября.
-     У пятой точки награда ещё не придумана — пустая строка, и приложение
-     про неё молчит, а не выдумывает. */
+     Формулировки первых четырёх — из макета «Идеи для сына» от 10 сентября,
+     пятая решена отцом 16 сентября. */
   points: [
     {date:"2026-09-20", sum:2400,  name:"Твой вечер",        gift:"фильм и меню на твой выбор"},
     {date:"2026-09-27", sum:4800,  name:"Твоя пятница",      gift:"отбой на час позже"},
@@ -4416,11 +4454,30 @@ const LEVELS = [
 ];
 const dbtFmt = n => n.toLocaleString("ru-RU")+" ₽";
 const rub = n => n.toLocaleString("ru-RU");
+/* Сумма вместе со знаком, неразрывно. Внутри длинной фразы «не хватает
+   1 770 ₽» обычный пробел перед ₽ даёт перенос, и знак рубля уезжает
+   на следующую строку один. Для сумм, стоящих в тексте, а не в своей
+   колонке, нужна эта форма. */
+const rubZ = n => rub(n)+"\u00A0₽";
 function daysBetween(a,b){ return Math.round((new Date(b+"T00:00:00") - new Date(a+"T00:00:00"))/86400000); }
 function dbtDate(d){
   const M=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
   const t=new Date(d+"T00:00:00");
   return t.getDate()+" "+M[t.getMonth()];
+}
+/* Как назвать срок точки. Вынесено отдельной функцией по двум причинам:
+   формулировка нужна в двух местах (шапка и договор), и её надо уметь
+   проверить прогоном на любой дате, не подменяя часы приложения.
+
+   Третья ветка — та, которой не было. Раньше веток было две, «N дней»
+   и «сегодня последний день», и вторая ловила любой ноль и минус:
+   21 сентября экран бодро сообщил бы «сегодня последний день» о сроке,
+   который прошёл накануне. */
+function dueWhen(days, dateISO, tail){
+  const t = tail ? " · "+tail : "";
+  if(days>0)   return `${dbtDate(dateISO)} · ${days}\u00A0${plural(days,"день","дня","дней")}${t}`;
+  if(days===0) return `${dbtDate(dateISO)} · сегодня последний день${t}`;
+  return `срок был ${dbtDate(dateISO)} · прошло ${-days} ${plural(-days,"день","дня","дней")}${t}`;
 }
 function nextPoint(all){
   const p=DEBT.points.find(x=>all<x.sum);
@@ -4634,7 +4691,7 @@ function renderSprint(){
   el.innerHTML=`<div class="lab">Как успеть к ${dbtDate(pl.nx.p.date)}</div>
     <div class="big">${nJobs(pl.pick.length)}</div>
     <div class="sub">${perDay>1?"по "+perDay+" в день":"по одному в день"} · выбраны из каталога</div>
-    ${pl.enough?"":`<div class="verdict no">Даже если сделать всё это, не хватит ${rub(pl.nx.need-pl.sum)} ₽</div>`}
+    ${pl.enough?"":`<div class="verdict no">Даже если сделать всё это, не хватит ${rubZ(pl.nx.need-pl.sum)}</div>`}
     <div class="jobs">${rows}</div>
     <div class="tot"><span>Выйдет</span><b>${rub(pl.sum)} ₽</b></div>`;
   const btn=document.createElement("button");
@@ -5164,6 +5221,63 @@ function checkStats(){
     waitSum: wait.reduce((a,t)=>a+moneyOf(t),0),
     doneSum: earnedSum(done)};
 }
+/* ---------- Экран «Договор» ----------
+   Отвечает на вопрос, который на главном экране виден только наполовину:
+   что это вообще за 12 000 ₽ и что будет на каждой из пяти точек.
+
+   Про взятые точки нарочно не пишем «взято такого-то числа»: даты взятия
+   в данных нет, а выдумывать её ради красоты нельзя — это документ,
+   на который они оба ссылаются в разговоре. */
+function openContract(){
+  const all=earnedAll();
+  const left=Math.max(0,DEBT.total-all);
+  const pct=Math.min(100,Math.round(all/DEBT.total*100));
+  const nx=nextPoint(all);
+  const pts=DEBT.points.map((p,i)=>{
+    const done=all>=p.sum;
+    const now=!done && nx && nx.p.date===p.date;
+    const need=p.sum-all;
+    const days=daysBetween(todayISO(),p.date);
+    const when = done ? "взято"
+      : now  ? dueWhen(days, p.date, days>=0 ? `не хватает ${rubZ(need)}` : "")
+      : `${dbtDate(p.date)} · ещё ${rubZ(need)}`;
+    return `<div class="pt ${done?"done":(now?"now":"")}">
+      <u>${done?"✓":i+1}</u>
+      <div><b>${p.name}</b>${p.gift?`<em class="gift">${p.gift}</em>`:""}
+        <span class="when">${when}</span></div>
+      <div class="v">${rub(p.sum)} ₽</div>
+    </div>`;
+  }).join("");
+  modal((b,close)=>{
+    b.innerHTML=`<h4>Договор</h4>
+      <div class="dog">
+        <div class="sum">
+          <div class="big">${rub(DEBT.total)} ₽</div>
+          <div class="sub">столько стоила замена крышки телефона</div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          <div class="two"><span>Заработал <b>${rub(all)} ₽</b></span>
+            <span>${left>0?`Осталось <b>${rub(left)} ₽</b>`:"Долг закрыт"}</span></div>
+        </div>
+
+        <h5>Пять контрольных точек</h5>
+        ${pts}
+
+        <div class="end"><b>${left>0?"Когда все пять взяты":"Все пять взяты"}</b>
+          Крышка отработана, и дальше всё заработанное — твои деньги,
+          а не выплата за ошибку.</div>
+
+        <div class="why">Цены у дел известны заранее и меняет их только папа:
+          цена — часть договора. Дело идёт в счёт, когда папа его принял.</div>
+      </div>
+      <div class="modalfoot">
+        <button class="btn ghost" id="dgRules">Правила</button>
+        <button class="btn" id="dgOk">Понятно</button>
+      </div>`;
+    b.querySelector("#dgOk").onclick=close;
+    b.querySelector("#dgRules").onclick=()=>{ close(); openRules(); };
+  });
+}
+
 /* Весь журнал отказов — отдельным окном, чтобы не раздувать «На проверке».
    Сверху отношение «вернули / переделал»: одна цифра, по которой видно,
    слышит ли он замечания. Ниже разбор по причинам — если две трети
@@ -5180,7 +5294,7 @@ function openBacklog(){
     .map(w=>`<div class="row"><div>${w.n}</div><div class="p">${st.why[w.id]}</div></div>`)
     .join("") || `<div class="empty">—</div>`;
   const rows = st.list.map(x=>{
-    const when = fmtWhen(x.at)+" · "+rub(x.price)+" ₽"
+    const when = fmtWhen(x.at)+" · "+rubZ(x.price)
                + (x.fix ? " · переделал "+fmtWhen(x.fix) : "");
     const why  = whyName(x.w) + (x.c ? " — "+x.c : "");
     return `<div class="row">
@@ -5412,10 +5526,8 @@ function renderDebtHead(all){
        <div><div class="k">Осталось</div><div class="n">${rub(left)} ₽</div></div>`
     : `<div><div class="k">Долг закрыт</div><div class="n g">0 ₽</div></div>
        <div><div class="k">На счету</div><div class="n g">${rub(over)} ₽</div></div>`;
-  const when = nx
-    ? (nx.days>0 ? `${dbtDate(nx.p.date)} · ${nx.days} ${plural(nx.days,"день","дня","дней")} · это ${rub(nx.perDay)} ₽ в день`
-                 : `${dbtDate(nx.p.date)} · сегодня последний день`)
-    : "";
+  const when = nx ? dueWhen(nx.days, nx.p.date,
+    nx.days>0 ? `это ${rubZ(nx.perDay)} в день` : "") : "";
   const tail = nx
     ? `<div class="row"><div class="t">Ближайшая точка — «${nx.p.name}»${
          nx.p.gift?`<em class="gift">${nx.p.gift}</em>`:""}<span>${when}</span></div>
@@ -5424,6 +5536,17 @@ function renderDebtHead(all){
        <div class="v ok">${rub(over)} ₽</div></div>`;
   box.innerHTML=`<div class="dh"><div class="two">${head}</div>
     <div class="steps">${steps}</div><div class="sep"></div>${tail}</div>`;
+  /* Вся шапка — вход в договор. Кружки точек без названий сами просят,
+     чтобы по ним нажали. */
+  const dh=box.querySelector(".dh");
+  if(dh){
+    dh.style.cursor="pointer";
+    dh.setAttribute("role","button");
+    dh.setAttribute("tabindex","0");
+    dh.title="Открыть договор";
+    dh.onclick=openContract;
+    dh.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openContract(); } };
+  }
 }
 
 function renderParentBar(){
