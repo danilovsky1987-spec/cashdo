@@ -1187,6 +1187,23 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
     padding:6px 10px;cursor:pointer;border:1px solid transparent;white-space:nowrap}
   .pend .pr .ok{background:var(--done);color:var(--onbright)}
   .pend .pr .no{background:none;color:var(--prB-fg);border-color:currentColor;margin-left:4px}
+  /* На телефоне в родительском режиме строка разваливалась: три кнопки
+     («Принять», «Своя цена», «Отклонить») не влезают рядом с текстом,
+     и название сжималось в колонку по одному слову, а цена налезала
+     на него сверху. Видно это было только в папином режиме на узком
+     экране — то есть ровно там, где отец и принимает дела.
+
+     Чиним переносом: текст и цена в первой строке, кнопки во второй,
+     во всю ширину. Порядок задан через grid-areas, разметку не трогаем. */
+  @media(max-width:560px){
+    .pend .pr{grid-template-columns:1fr auto;
+      grid-template-areas:"t p" "b b";row-gap:8px}
+    .pend .pr .t{grid-area:t}
+    .pend .pr .p{grid-area:p;text-align:right}
+    .pend .pr>div:last-child:not(.t):not(.p){grid-area:b;display:flex;gap:6px}
+    .pend .pr>div:last-child:not(.t):not(.p) button{flex:1;padding:9px 6px;font-size:12px}
+    .pend .pr .no{margin-left:0}
+  }
   .pend .note{font-size:11.5px;color:var(--prB-fg);opacity:.85;margin-top:8px;line-height:1.4}
   .chip-pend{display:inline-block;font-family:var(--display);font-weight:700;font-size:10px;
     letter-spacing:.04em;background:var(--prB-bg);color:var(--prB-fg);border-radius:5px;
@@ -1306,6 +1323,9 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .pend.prop .ph b{color:#1D4ED8}
   .pend.prop .p em{display:block;font-style:normal;font-size:9.5px;letter-spacing:.04em;
     text-transform:uppercase;color:var(--muted);font-weight:400}
+  .prophint{font-size:12.5px;line-height:1.45;color:var(--wk-fg);background:var(--wk-bg);
+    border-radius:11px;padding:10px 13px;margin:-2px 0 12px}
+  body:not([data-view="today"]) .prophint{display:none}
   /* В режиме предложения направление, приоритет и дата ни при чём. */
   .addcard.propmode #catBtn,.addcard.propmode #prioBtn,
   .addcard.propmode #dateBtn,.addcard.propmode .sum{display:none}
@@ -1676,6 +1696,8 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
 
   <!-- ADD -->
   <button class="foldopen" id="addOpen" type="button">＋ Новая задача</button>
+  <div class="prophint" id="propHint" hidden>Папа согласует цену — и расценка
+    останется в каталоге. Её можно будет сдавать не один раз, а всегда.</div>
   <div class="panel addcard" id="addCard">
     <div class="sheetgrab" aria-hidden="true"></div>
     <div class="addline">
@@ -3363,14 +3385,40 @@ function paintAddMode(){
   const card=$(".addcard"); if(!card) return;
   const parent=isParent();
   card.classList.toggle("propmode",!parent);
-  const t=$("#newText"); if(t) t.placeholder=parent?"Новая задача…":"Что предлагаешь сделать…";
-  const b=$("#addBtn"); if(b) b.textContent=parent?"Добавить":"Предложить";
+  /* До 18 сентября сын видел здесь слово «дело»: «Что предлагаешь сделать».
+     Это было правдой ровно до того дня, когда дела стали повторяемыми.
+     Теперь принятое предложение живёт в каталоге постоянно и сдаётся
+     сколько угодно раз — то есть он предлагает не дело, а **расценку**.
+     Отец это и просил: «например за оценку 5, 100 руб.» */
+  const t=$("#newText");
+  if(t) t.placeholder=parent?"Новая задача…":"За что тебе платить?";
+  /* Кнопка отправки устроена из двух частей: `.sendtx` со словом для
+     широкого экрана и `.sendic` с «＋» для телефона, где место под текст
+     всего 40 px. Здесь стояло `b.textContent = …` — присвоение сносило
+     обе части и клало голый текст, который на телефоне обрезался
+     до «Предл». Поломка была с самого начала и жила незаметно, потому
+     что снимки формы я делал на широком экране. Меняем только слово. */
+  const b=$("#addBtn");
+  if(b){
+    const tx=b.querySelector(".sendtx");
+    if(tx) tx.textContent = parent?"Добавить":"Предложить";
+    else b.textContent = parent?"Добавить":"Предложить";
+    b.title = parent?"Добавить задачу":"Предложить расценку";
+    b.setAttribute("aria-label", b.title);
+  }
   const nt=$("#noteToggle");
   if(nt) nt.textContent=parent?"✎ Добавить заметку":"✎ Сколько это стоит и зачем";
   const pr=$("#newPrice");
-  if(pr) pr.placeholder=parent?"₽":"цена, ₽";
+  if(pr) pr.placeholder=parent?"₽":"сколько просишь, ₽";
   const nn=$("#newNote");
   if(nn) nn.placeholder=parent?"Заметка (необязательно)":"Зачем это нужно (необязательно)";
+  const op=$("#addOpen");
+  if(op) op.textContent=parent?"＋ Новая задача":"＋ Предложить расценку";
+  /* Главное, чего он не знал: согласованная расценка остаётся навсегда.
+     Одно дело выпросить сто рублей один раз, другое — завести себе
+     постоянный заработок. Это разные мотивации. */
+  const hint=$("#propHint");
+  if(hint) hint.hidden=parent;
 }
 function paintForm(){
   paintAddMode();
@@ -3940,7 +3988,8 @@ function renderProposals(){
   wrap.className="pend prop";
   const head=document.createElement("div");
   head.className="ph";
-  head.innerHTML=`<b>Предложения сына</b><span>${list.length} ${plural(list.length,"дело","дела","дел")}</span>`;
+  head.innerHTML=`<b>Предложения сына</b><span>${list.length} ${
+    plural(list.length,"расценка","расценки","расценок")}</span>`;
   wrap.appendChild(head);
   list.slice(0,8).forEach(t=>{
     const row=document.createElement("div"); row.className="pr";
@@ -5258,7 +5307,7 @@ function backlogStats(){
 /* Что стало с предложением — сын читает строкой под делом. */
 function propText(t){
   if(!t.prop) return "";
-  if(t.hold) return "Предложено за "+rub(t.prop.ask)+" ₽ · ждёт папу";
+  if(t.hold) return "Расценка предложена: "+rubZ(t.prop.ask)+" · ждёт папу";
   if(t.prop.no) return "Отклонили"+(t.prop.c?": "+t.prop.c:"");
   if(t.prop.ok) return t.prop.price===t.prop.ask
     ? "Приняли за "+rub(t.prop.price)+" ₽ — как просил"
