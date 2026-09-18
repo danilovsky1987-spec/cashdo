@@ -3624,23 +3624,82 @@ function openSnaps(){
   });
 }
 
+/* Что попадает в резервную копию.
+
+   До 18 сентября копия хранила **только дела** — голый массив `state.tasks`.
+   Всё остальное живёт в prefs и в копию не попадало: история выплат,
+   журнал возвратов, сколько уже выдано на руки, цели недели.
+   То есть восстановление из копии стирало денежную историю, а замечено
+   это было бы в самый неподходящий день.
+
+   Теперь копия — объект с версией. Старый формат (голый массив) читаем
+   по-прежнему: копии, сделанные раньше, открываться не перестанут. */
+const BACKUP_V=2;
+function backupPack(){
+  return {
+    v:BACKUP_V, at:Date.now(), app:"CashDo",
+    tasks:state.tasks,
+    prefs:{
+      paidTotal:prefs.paidTotal||0,
+      payouts:prefs.payouts||[],
+      backlog:prefs.backlog||[],
+      weekGoal:prefs.weekGoal, weekGoalRub:prefs.weekGoalRub,
+      penalty:prefs.penalty||null,
+      sprint:prefs.sprint||null,
+      skin:prefs.skin, wonWeek:prefs.wonWeek,
+      catRev:prefs.catRev, backlogSeeded:prefs.backlogSeeded
+    }
+  };
+  /* Роль устройства и ПИН в копию не кладём: они про этот телефон,
+     а не про семью. Иначе копия с папиного телефона, открытая у сына,
+     сделала бы его устройство родительским. */
+}
 function exportData(){
   prefs.lastBackup=Date.now(); savePrefs(); renderBackupNote();
-  const blob=new Blob([JSON.stringify(state.tasks,null,2)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify(backupPack(),null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download=`дела-копия-${todayISO()}.json`;
   a.click(); URL.revokeObjectURL(a.href);
+}
+/* Похоже ли это на наши дела. Раньше проверка была одна — «это массив», —
+   и приложение молча принимало любой массив чего угодно, оставляя человека
+   с пустым экраном вместо данных. */
+function looksLikeTasks(a){
+  return Array.isArray(a) && a.length>0 &&
+    a.every(t=>t && typeof t==="object" && typeof t.id==="string" && typeof t.text==="string");
 }
 function importData(file){
   const r=new FileReader();
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result);
-      if(!Array.isArray(d)) throw 0;
+      const tasks = Array.isArray(d) ? d : (d && Array.isArray(d.tasks) ? d.tasks : null);
+      if(!looksLikeTasks(tasks)) throw 0;
       takeSnap("перед загрузкой файла");
-      state.tasks=d; save(); render();
-      tell("Копия загружена: "+d.length+" задач.",{title:"Готово"});
+      state.tasks=tasks;
+      let что="";
+      if(!Array.isArray(d) && d.prefs){
+        const p=d.prefs;
+        if(typeof p.paidTotal==="number") prefs.paidTotal=p.paidTotal;
+        if(Array.isArray(p.payouts)) prefs.payouts=p.payouts;
+        if(Array.isArray(p.backlog)) prefs.backlog=p.backlog;
+        if(typeof p.weekGoal==="number") prefs.weekGoal=p.weekGoal;
+        if(typeof p.weekGoalRub==="number") prefs.weekGoalRub=p.weekGoalRub;
+        if("penalty" in p){ if(p.penalty) prefs.penalty=p.penalty; else delete prefs.penalty; }
+        if("sprint" in p){ if(p.sprint) prefs.sprint=p.sprint; else delete prefs.sprint; }
+        if(typeof p.skin==="string") prefs.skin=p.skin;
+        if(typeof p.wonWeek==="string") prefs.wonWeek=p.wonWeek;
+        if(typeof p.backlogSeeded==="boolean") prefs.backlogSeeded=p.backlogSeeded;
+        savePrefs();
+        что=", выплаты и журнал возвратов";
+      }else{
+        что=" (старая копия — только дела, без выплат и журнала)";
+      }
+      save();
+      healStuck(); dedupeTasks();
+      render();
+      tell("Копия загружена: "+tasks.length+" задач"+что+".",{title:"Готово"});
     }catch(e){ tell("Не удалось прочитать файл. Нужен .json, сохранённый этим приложением.",{title:"Файл не подошёл"}); }
   };
   r.readAsText(file);
