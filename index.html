@@ -425,7 +425,13 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
     border-radius:8px;padding:6px 10px;cursor:pointer}
   .snap button:hover{background:var(--ink);color:var(--card);border-color:var(--ink)}
   .modalfoot{display:flex;gap:8px;flex-wrap:wrap}
-  .modalfoot .btn{flex:1;min-width:120px}
+  /* У .btn стоит white-space:nowrap — нужный в узких местах, но в подвале
+     окна кнопки ещё и растянуты flex:1. На телефоне «Отметить выплату»
+     не влезало в свою половину и **обрезалось** до «Отметить выплат»:
+     ни перенести, ни показать целиком. Здесь перенос разрешаем — две
+     строки в кнопке лучше отрезанного слова. */
+  .modalfoot .btn{flex:1;min-width:120px;white-space:normal;text-align:center;
+    line-height:1.25}
   .goalpop{position:fixed;z-index:250;background:var(--card);border:1px solid var(--line);
     border-radius:14px;box-shadow:0 10px 34px rgba(20,20,30,.18);padding:14px;width:250px;max-width:92vw}
   .goalpop b{display:block;font-family:var(--display);font-size:13px;margin-bottom:3px}
@@ -4881,10 +4887,21 @@ function penUntil(kind){
 }
 /* Действующее последствие — одно за раз: два сразу ребёнок не удержит,
    да и снимать их пришлось бы по отдельности. Новое заменяет старое. */
+/* Срок последствия обязан быть числом. Запись про наказание приезжает
+   по сети из открытой базы (syncApply), то есть в `until` может оказаться
+   что угодно — строка от старой версии, мусор, undefined. Однажды экран
+   уже написал сыну «снимется завтра в NaN:NaN»; такого он видеть не должен
+   ни при каких входных данных. Всё, что не конечное число, считаем
+   «срока нет» — тогда последствие снимает папа руками. */
+const penTime = p => {
+  const t = Number(p && p.until);
+  return Number.isFinite(t) && t>0 ? t : 0;
+};
 function penActive(){
   const p=prefs.penalty;
   if(!p||!p.rule) return null;
-  if(p.until && Date.now()>p.until){ delete prefs.penalty; savePrefs(); return null; }
+  const till=penTime(p);
+  if(till && Date.now()>till){ delete prefs.penalty; savePrefs(); return null; }
   return p;
 }
 function penApply(r){
@@ -4893,8 +4910,9 @@ function penApply(r){
 }
 function penClear(){ delete prefs.penalty; savePrefs(); render(); }
 function penWhen(p){
-  if(!p.until) return "снимает папа";
-  const d=new Date(p.until), h=String(d.getHours()).padStart(2,"0"),
+  const till=penTime(p);
+  if(!till) return "снимает папа";
+  const d=new Date(till), h=String(d.getHours()).padStart(2,"0"),
         m=String(d.getMinutes()).padStart(2,"0");
   const today=iso(d)===todayISO();
   return today ? `до конца дня, ${h}:${m}` : `снимется завтра в ${h}:${m}`;
