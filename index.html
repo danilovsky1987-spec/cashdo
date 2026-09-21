@@ -1995,7 +1995,6 @@ const SEED=[
  ["c4","Почистить овощи на суп","C","",60],
  ["c4","Составить меню на неделю и список покупок к нему","B","неделя",200],
  ["c4","Подготовить продукты к приходу гостей","B","",150],
- ["c4","Помыть посуду после гостей — большая партия","B","",200],
  ["c5","Полный цикл стирки: загрузить, развесить, снять, сложить","B","цикл",150],
  ["c5","Погладить свои вещи","C","",100],
  ["c5","Пришить пуговицу или зашить шов","C","",80],
@@ -2062,11 +2061,14 @@ const seedTasks=()=>SEED.map((s,i)=>({id:"s"+i,cat:s[0],text:s[1],prio:s[2],note
    Осторожность прежняя: убранное уходит в корзину, а не в никуда —
    тридцать дней его можно вернуть; отмеченное, принятое и добавленное
    вручную не трогается никогда, иначе исчезли бы деньги и история. */
-const CATALOG_REV=4;
+const CATALOG_REV=5;
 /* Всё, что когда-либо убиралось из каталога, накопительно.
    Список нужен именно перечнем: искать «чего нет в SEED» нельзя —
    под нож попало бы переименованное вручную дело. */
 const CATALOG_RETIRED=new Set([
+  /* Убрано 21 сентября по решению отца: дело ждало гостей и потому
+     почти никогда не было доступно. */
+  "Помыть посуду после гостей — большая партия",
   "Разобрать мусор по контейнерам: пластик, бумага, стекло",
   "Протереть кухонный стол и плиту после ужина",
   "Накрыть на стол и убрать со стола",
@@ -2128,6 +2130,10 @@ function syncCatalog(){
   state.tasks.forEach(t=>{
     const to=CATALOG_MOVE[t.text];
     if(to && t.cat!==to){ t.cat=to; n++; return; }
+    /* Начальные значения признака «спринт не назначает». Ставим один
+       раз и только если галочку ещё не трогали руками: решение отца
+       важнее умолчаний из сборки. */
+    if(CATALOG_NOSPRINT.has(t.text) && t.noSprint===undefined){ t.noSprint=true; touch(t); n++; }
     if(t.del||t.done||isMine(t)||isOne(t)) return;
     if(CATALOG_RETIRED.has(t.text)){ t.del=Date.now(); n++; }
   });
@@ -2405,6 +2411,13 @@ function openPriceEdit(t){
         <span>Не предлагать в наряде на день<br>
           <span style="font-size:11.5px;color:var(--faint)">Достижение, а не дело: отметить можно, запланировать нельзя</span></span>
       </label>
+      <label style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);
+        background:var(--soft2);border-radius:10px;padding:10px 12px;margin-bottom:14px;cursor:pointer">
+        <input type="checkbox" id="priceNoSpr" ${t.noSprint?"checked":""}
+          style="width:17px;height:17px;accent-color:var(--done);flex:none">
+        <span>Спринт не назначает сам<br>
+          <span style="font-size:11.5px;color:var(--faint)">Сначала должно случиться событие или нужна твоя помощь: гости, посылка, мебель</span></span>
+      </label>
       <div class="modalfoot">
         <button class="btn ghost" id="priceDef">Без цены</button>
         <button class="btn" id="priceSave">Сохранить</button>
@@ -2416,6 +2429,9 @@ function openPriceEdit(t){
       const v=parseInt(inp.value,10);
       if(isFinite(v)&&v>=0) t.price=v; else delete t.price;
       t.noSuggest = b.querySelector("#priceNo").checked;
+      /* Признак храним только когда он включён: лишнее поле у каждого
+         дела зря ездит между телефонами. */
+      if(b.querySelector("#priceNoSpr").checked) t.noSprint=true; else delete t.noSprint;
       touch(t); save(); render(); close();
     };
     inp.onkeydown=e=>{ if(e.key==="Enter") b.querySelector("#priceSave").click(); };
@@ -5079,18 +5095,27 @@ function levelOf(all){
    Когда в data.py появится честный признак, список уйдёт. */
 const SPRINT_CATS=new Set(["c1","c2","c3","c4","c5"]);   /* делается руками, за день */
 const SPRINT_LONG=new Set(["неделя","месяц","четверть","книга","курс"]);
-const SPRINT_SKIP=new Set([
-  "Помыть посуду после гостей — большая партия",   /* сначала нужны гости */
-  "Подготовить продукты к приходу гостей",         /* и здесь тоже */
-  "Забрать посылку из пункта выдачи",              /* и сначала нужна посылка */
-  "Собрать мебель по инструкции вместе с папой"    /* это он выбирает сам */
+/* Дела, которые спринт не назначает сам. Раньше это был список по
+   текстам прямо в коде — и он был миной: стоило завести новое дело
+   вроде «помыть посуду после гостей», как спринт обещал его сыну
+   на четверг, хотя гостей никто не звал. Поправить можно было только
+   правкой кода.
+
+   Теперь это признак самого дела: ездит между телефонами вместе с ним
+   и правится галочкой в окне цены. Список ниже — только начальные
+   значения, они проставляются один раз при обновлении каталога
+   (см. syncCatalog) и больше ни на что не влияют. */
+const CATALOG_NOSPRINT=new Set([
+  "Подготовить продукты к приходу гостей",         /* сначала нужны гости */
+  "Забрать посылку из пункта выдачи",              /* сначала нужна посылка */
+  "Собрать мебель по инструкции вместе с папой"    /* нужен папин вечер, сын выбирает сам */
 ]);
 const SPRINT_MAX_PRICE=450;   /* страховка, если в быт попадёт что-то крупное */
 const SPRINT_PER_DAY=3;       /* больше трёх дел в день — это уже аврал */
 const SPRINT_SHOW_DAYS=3;     /* за сколько дней до точки показывать */
 const sprintable=t=>SPRINT_CATS.has(t.cat)
   && !SPRINT_LONG.has((t.note||"").trim())
-  && !SPRINT_SKIP.has(t.text);
+  && !t.noSprint;
 
 function earnedAll(){ return earnedSum(state.tasks.filter(t=>t.done)); }
 /* Успевает ли по темпу последней недели. */
