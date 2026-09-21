@@ -308,6 +308,23 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .bigempty b{display:block;font-family:var(--display);font-size:15px;color:var(--ink);margin-bottom:4px}
   .picklist{max-height:340px;overflow-y:auto;margin:0 -4px;padding:0 4px}
   .pickfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+  /* Пилюля с текстом. Общий .chip для этого не годится: он квадратный,
+     38×38, и рассчитан на один смайлик — название из него вываливалось
+     поверх соседей. */
+  .nrchip{display:inline-flex;align-items:center;cursor:pointer;user-select:none;
+    font:inherit;font-size:12px;font-weight:600;line-height:1;white-space:nowrap;
+    padding:6px 10px;border-radius:999px;color:var(--ink);
+    background:var(--card);border:1.5px solid var(--line)}
+  .nrchip:hover{border-color:var(--edge)}
+  .nrchip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+  .nrlab{font-size:11.5px;color:var(--muted);margin:2px 0 5px;font-weight:600;
+    letter-spacing:.04em;text-transform:uppercase}
+  /* Направлений дюжина, и в столбик они занимали одиннадцать строк:
+     экран выбора открывался стеной фильтров, а сами дела уезжали вниз.
+     Лентой — одна строка и привычный для телефона горизонтальный свайп. */
+  .nrscroll{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding-bottom:2px}
+  .nrscroll::-webkit-scrollbar{display:none}
   .pickrow{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:9px;border-left:3px solid var(--c)}
   .pickrow+.pickrow{border-top:1px solid var(--soft2)}
   .pickrow:hover{background:var(--hover)}
@@ -1227,6 +1244,9 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
     align-items:center;justify-content:space-between;gap:10px}
   .parenton button{font:inherit;font-size:11.5px;font-weight:700;color:inherit;background:none;
     border:1px solid currentColor;border-radius:8px;padding:5px 10px;cursor:pointer}
+  .parenton .pbtns{display:flex;gap:6px;flex-shrink:0}
+  .parenton #pbNar{background:currentColor}
+  .parenton #pbNar{color:var(--wk-bg)}
 
   /* ---------- Четыре вида главного экрана ----------
      Пока идёт выбор, все четыре живут рядом и переключаются кнопками.
@@ -2507,7 +2527,7 @@ function makeRow(t,{showCat=false}={}){
   const dinp=row.querySelector(".dinp");
   dinp.value=t.date||todayISO();
   dinp.onclick=e=>{e.stopPropagation();if(dinp.showPicker){try{dinp.showPicker()}catch(err){}}};
-  dinp.onchange=()=>{t.date=dinp.value||null;save();render()};
+  dinp.onchange=()=>{t.date=dinp.value||null;touch(t);save();render()};
   if(t.date && !t.done && t.date<todayISO()) chip.classList.add("overdue");
   /* Отметка сына — заявка, а не начисление. Деньги проставит папа
      в приёмке: t.earned появляется только там. */
@@ -2529,7 +2549,7 @@ function makeRow(t,{showCat=false}={}){
   row.querySelector(".rowtext").onclick=toggle;
   row.querySelector(".del").onclick=()=>{t.del=Date.now();save();render()};
   const cd=row.querySelector(".cleardate");
-  if(cd) cd.onclick=()=>{t.date=null;save();render()};
+  if(cd) cd.onclick=()=>{t.date=null;touch(t);save();render()};
   return row;
 }
 const EMOJI=("🏠 🏢 🛋 🔧 🔌 🧹 🪣 🛏 🚗 🚲 🛒 📦 💰 🧾 🏦 💳 "+
@@ -2796,7 +2816,7 @@ function renderToday(){
         <button class="toToday">→ сегодня</button>`;
       el.querySelector(".pt div").textContent=cat.emoji+" "+t.text;
       if(t.note) el.querySelector(".pn").textContent=t.note;
-      el.querySelector(".toToday").onclick=()=>{t.date=T;save();render()};
+      el.querySelector(".toToday").onclick=()=>{t.date=T;touch(t);save();render()};
       pr.appendChild(el);
     });
   }
@@ -5060,11 +5080,34 @@ function sprintTaken(){
   if(!nx || nx.p.date!==s.point){ delete prefs.sprint; savePrefs(); return null; }
   return s;
 }
+/* Спринт может взять сын сам, а может поставить папа со своего телефона.
+   Разница не техническая, а смысловая: «я взялся» и «мне поставили» —
+   разные вещи, и называться у сына они обязаны по-разному. Поэтому
+   спринт помнит, чьих он рук, а дела получают метку byParent. */
 function sprintTake(pl){
-  pl.pick.forEach(t=>{ t.date=t._day; });
+  const отПапы=isParent();
+  /* Метку byParent спринт не ставит намеренно: чей он, уже записано
+     в prefs.sprint.by, а метка принадлежит ручному наряду. Иначе после
+     закрытия точки спринт исчезал, а его дела оставались помеченными —
+     и блок спринта молча превращался в блок наряда. */
+  pl.pick.forEach(t=>{ t.date=t._day; touch(t); });
   prefs.sprint={point:pl.nx.p.date, at:Date.now(), n:pl.pick.length, sum:pl.sum,
-                ids:pl.pick.map(t=>t.id)};
+                by:отПапы?"parent":"child", ids:pl.pick.map(t=>t.id)};
   savePrefs(); save(); render();
+}
+function naryadCard(list){
+  const el=document.createElement("div");
+  el.className="spr";
+  const сделано=list.filter(t=>t.done).length;
+  const сумма=list.reduce((a,t)=>a+moneyOf(t),0);
+  const заголовок=isParent()?"Ты поставил сыну на сегодня":"Папа поставил на сегодня";
+  const подпись=сделано===list.length
+    ? "всё сделано, ждём приёмку"
+    : "на "+rub(сумма)+" ₽ · дела стоят в наряде";
+  const шапка='<div class="lab">'+заголовок+'</div>';
+  const цифра='<div class="big">'+сделано+" из "+list.length+'</div>';
+  el.innerHTML=шапка+цифра+'<div class="sub">'+подпись+'</div>';
+  return el;
 }
 function renderSprint(){
   const box=$("#sprintBox"); if(!box) return;
@@ -5074,6 +5117,11 @@ function renderSprint(){
      права исчезнуть у него из-под рук, пока точка не пройдена. */
   const took=sprintTaken();
   const pl=sprintPlan();
+  /* Наряд, собранный папой руками, идёт впереди спринта: это уже
+     решённое дело, а спринт — только предложение. Два блока об одном
+     и том же друг друга глушат, поэтому показываем что-то одно. */
+  const нар=naryadToday();
+  if(!took && нар.length){ box.appendChild(naryadCard(нар)); return; }
   if(!took && !pl) return;
   const el=document.createElement("div");
   el.className="spr";
@@ -5093,7 +5141,10 @@ function renderSprint(){
     const ids=new Set(took.ids||[]);
     const mine=state.tasks.filter(t=>ids.has(t.id));
     const doneN=mine.filter(t=>t.done).length;
-    el.innerHTML=`<div class="lab">Спринт до ${dbtDate(took.point)}</div>
+    const ктоLab = took.by!=="parent" ? "Спринт до "+dbtDate(took.point)
+      : (isParent() ? "Ты поставил спринт до "+dbtDate(took.point)
+                    : "Папа поставил спринт до "+dbtDate(took.point));
+    el.innerHTML=`<div class="lab">${ктоLab}</div>
       <div class="big">${doneN} из ${took.n}</div>
       <div class="sub">${doneN===took.n?"всё сделано, ждём приёмку"
         :"дела стоят в наряде по дням · на "+rub(took.sum)+" ₽"}</div>
@@ -5112,7 +5163,7 @@ function renderSprint(){
     <div class="jobs">${rows}</div>
     <div class="tot"><span>Выйдет</span><b>${rub(pl.sum)} ₽</b></div>`;
   const btn=document.createElement("button");
-  btn.type="button"; btn.className="take"; btn.textContent="Беру спринт";
+  btn.type="button"; btn.className="take"; btn.textContent=isParent()?"Поставить сыну":"Беру спринт";
   btn.onclick=()=>sprintTake(pl);
   el.appendChild(btn);
   box.appendChild(el);
@@ -5974,8 +6025,163 @@ function openTomorrow(){
     b.querySelector("#pkCancel").onclick=close;
     b.querySelector("#pkOk").onclick=()=>{
       list.forEach(t=>{
+        const было=t.date;
         if(sel.has(t.id)) t.date=TM;
         else if(t.date===TM) t.date=null;   /* сняли галочку — освобождаем день */
+        /* Дата — такая же правка, как цена: своей метки времени она не
+           оставляет, и без touch слияние считает обе версии ровесниками
+           и оставляет чужую. Наряд, собранный на одном телефоне, до
+           второго не доезжал молча. */
+        if(t.date!==было) touch(t);
+      });
+      save(); render(); close();
+    };
+  });
+}
+
+/* ---------- Наряд от папы ----------
+
+   Сын пока не берёт дела сам: спринт не жмёт, план на завтра не
+   собирает. Пустой список по утрам — это не лень, это возраст:
+   выбрать, с чего начать, тяжелее, чем сделать. Поэтому у папы есть
+   право собрать наряд за него — и это честнее, чем ждать инициативы,
+   которой ещё нет.
+
+   Три правила, на которых это держится.
+
+   Первое: дата своей метки времени не оставляет, поэтому каждое
+   изменение проходит через touch. Без него наряд, собранный на папином
+   телефоне, до сына молча не доезжает — ровно та история, что была
+   с ценой.
+
+   Второе: метка byParent нужна сыну. У себя он должен видеть, что это
+   поставил папа, а не он сам. При приёмке метка снимается вместе
+   с датой, и дело возвращается в каталог ничьим.
+
+   Третье: снимать папа может только своё. Если сын сам поставил дело
+   на день, папин экран его не трогает — иначе наряд затирал бы
+   собственные планы ребёнка. */
+function naryadOf(day){ return live().filter(t=>!t.done && t.date===day && t.byParent); }
+function naryadToday(){ return naryadOf(todayISO()); }
+
+function openNaryad(){
+  const ДНИ=[{id:todayISO(),lab:"Сегодня"},{id:tomorrowISO(),lab:"Завтра"}];
+  let день=ДНИ[0].id, фильтр="all";
+  /* Выбор держим по дням отдельно: переключение дня не должно терять
+     то, что уже наотмечали, пока не нажато «Готово». */
+  const план=new Map();
+  const набор=d=>{
+    if(!план.has(d)) план.set(d,new Set(live().filter(t=>!t.done&&t.date===d).map(t=>t.id)));
+    return план.get(d);
+  };
+  /* Папе показываем весь каталог, а не подсказки: он ставит и «помыть
+     посуду», и «неделя без грубости» — то, что программа сыну сама
+     никогда не предложит. Прячем только то, что отметить физически
+     нельзя: отдыхающее после приёмки, предложенное и ещё не
+     согласованное, и разовое. */
+  /* Порядок — как в каталоге: сначала «Дом — каждый день», потом
+     недельное, кухня, школа и так далее; внутри направления — дороже
+     сверху. По одной цене наверх всплывали «Призовое место» и олимпиада,
+     то есть ровно то, что на сегодня назначить нельзя. */
+  const порядок={}; CATS.forEach((c,i)=>{ порядок[c.id]=i; });
+  const пул=live().filter(t=>!t.done && moneyOf(t)>0 && !t.hold && !isOne(t) && !onCooldown(t))
+    .sort((a,b)=>{
+      const ра=порядок[a.cat], рб=порядок[b.cat];
+      const ца=(ра===undefined?99:ра), цб=(рб===undefined?99:рб);
+      return ца!==цб ? ца-цб : moneyOf(b)-moneyOf(a);
+    });
+  const направления=[];
+  пул.forEach(t=>{ if(направления.indexOf(t.cat)<0) направления.push(t.cat); });
+
+  modal((b,close)=>{
+    const шапка='<h4>Что поставить сыну</h4>'
+      +'<p>Отметь дела и день. Сын увидит их в наряде с пометкой, что поставил папа.</p>'
+      +'<div class="nrlab">На какой день</div>'
+      +'<div class="pickfilter" id="nrDays"></div>'
+      +'<div class="nrlab">Направление</div>'
+      +'<div class="pickfilter nrscroll" id="nrCats"></div>';
+    const низ='<div class="picksum"><span>Выйдет</span><b id="nrSum">0 ₽</b></div>'
+      +'<div class="modalfoot">'
+      +'<button class="btn ghost" id="nrCancel">Отмена</button>'
+      +'<button class="btn" id="nrOk">Готово</button></div>';
+    b.innerHTML=шапка+'<div class="picklist" id="nrRows"></div>'+низ;
+
+    const кнопка=(текст,вкл)=>{
+      const x=document.createElement("button");
+      x.type="button"; x.className="nrchip"+(вкл?" on":"");
+      x.textContent=текст;
+      return x;
+    };
+    /* Названия длинные, а пилюль дюжина. Резать по тире нельзя:
+       «Дом — каждый день», «Дом — раз в неделю» и «Дом — крупное»
+       превращались в три одинаковых «Дома». Поэтому просто
+       подрезаем по длине — начало у всех разное. */
+    const коротко=n=>{ n=String(n||"").trim();
+      return n.length>21 ? n.slice(0,20).trim()+"…" : n; };
+    const dni=b.querySelector("#nrDays");
+    ДНИ.forEach(d=>{
+      const x=кнопка(d.lab, d.id===день);
+      x.onclick=()=>{ день=d.id; рисовать(); };
+      dni.appendChild(x);
+    });
+    const cats=b.querySelector("#nrCats");
+    const всеКн=кнопка("Все", true);
+    всеКн.onclick=()=>{ фильтр="all"; рисовать(); };
+    cats.appendChild(всеКн);
+    направления.forEach(id=>{
+      const c=catOf(id);
+      const x=кнопка(c.emoji+" "+коротко(c.name), false);
+      x.onclick=()=>{ фильтр=id; рисовать(); };
+      cats.appendChild(x);
+    });
+
+    function рисовать(){
+      const set=набор(день);
+      dni.querySelectorAll(".nrchip").forEach((x,i)=>x.classList.toggle("on",ДНИ[i].id===день));
+      cats.querySelectorAll(".nrchip").forEach((x,i)=>
+        x.classList.toggle("on", i===0 ? фильтр==="all" : направления[i-1]===фильтр));
+      const rows=b.querySelector("#nrRows");
+      rows.innerHTML="";
+      const видно=пул.filter(t=>фильтр==="all"||t.cat===фильтр);
+      видно.forEach(t=>{
+        const row=document.createElement("div");
+        row.className="pickrow"+(set.has(t.id)?" on":"");
+        const c=catOf(t.cat);
+        if(c&&c.c) row.style.setProperty("--c",c.c);
+        const cb=document.createElement("div"); cb.className="cb";
+        cb.textContent=set.has(t.id)?"✓":"";
+        const tt=document.createElement("div"); tt.className="t";
+        tt.textContent=t.text;
+        const sp=document.createElement("span");
+        /* Если дело уже стоит на другой день, это надо сказать: иначе
+           папа переносит его вслепую и удивляется, куда делось. */
+        const другой=ДНИ.filter(d=>d.id!==день).find(d=>t.date===d.id);
+        sp.textContent=(c?c.name:"")+(другой?" · стоит на "+другой.lab.toLowerCase():"");
+        tt.appendChild(sp);
+        const pr=document.createElement("div"); pr.className="p";
+        pr.textContent=rub(moneyOf(t))+" ₽";
+        row.append(cb,tt,pr);
+        row.onclick=()=>{
+          if(set.has(t.id)) set.delete(t.id); else set.add(t.id);
+          рисовать();
+        };
+        rows.appendChild(row);
+      });
+      let сумма=0;
+      пул.forEach(t=>{ if(set.has(t.id)) сумма+=moneyOf(t); });
+      b.querySelector("#nrSum").textContent=rub(сумма)+" ₽";
+    }
+    рисовать();
+
+    b.querySelector("#nrCancel").onclick=close;
+    b.querySelector("#nrOk").onclick=()=>{
+      план.forEach((set,d)=>{
+        пул.forEach(t=>{
+          const былаДата=t.date||null, былаМетка=!!t.byParent;
+          if(set.has(t.id)){ t.date=d; t.byParent=true; }
+          else if(t.date===d && t.byParent){ t.date=null; delete t.byParent; }
+          if((t.date||null)!==былаДата || !!t.byParent!==былаМетка) touch(t);
+        });
       });
       save(); render(); close();
     };
@@ -6116,9 +6322,13 @@ function nextSkin(){
 function renderParentBar(){
   const box=$("#parentBar"); if(!box) return;
   if(!isParent()){ box.innerHTML=""; return; }
+  /* Вторая кнопка здесь, а не отдельным блоком: плашка и так видна
+     только папе и только в родительском режиме — точнее места нет. */
   box.innerHTML=`<div class="parenton"><span>Родительский режим включён</span>
-    <button type="button" id="pbOff">Выключить</button></div>`;
+    <span class="pbtns"><button type="button" id="pbNar">Назначить сыну</button>
+    <button type="button" id="pbOff">Выключить</button></span></div>`;
   box.querySelector("#pbOff").onclick=()=>setParent(false);
+  box.querySelector("#pbNar").onclick=openNaryad;
 }
 
 function renderPending(){
@@ -6241,7 +6451,7 @@ function reopenTask(t){
     doneAt:t.doneAt||t.okAt, okAt:t.okAt, earned:t.earned, log:true, of:t.id});
   t.lastOk=t.okAt;
   delete t.done; delete t.doneAt; delete t.ok; delete t.okAt;
-  delete t.earned; delete t.date; delete t.back;
+  delete t.earned; delete t.date; delete t.back; delete t.byParent;
   /* Обязательно. Снимая отметки, дело теряет все свои метки времени
      и для слияния становится «древним»: у второго телефона версия
      с галочкой выглядит свежее и побеждает. В жизни это значило, что
