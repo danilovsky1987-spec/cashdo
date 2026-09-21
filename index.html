@@ -1385,6 +1385,16 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .row.cooling .t{color:var(--muted)}
   .backnote{display:block;font-size:11px;color:var(--bad-fg);margin-top:2px;
     white-space:normal;line-height:1.35}
+  /* Кто поставил дело. Без этой строки блок сверху обещает «3 дела»,
+     а в наряде рядом стоят обычные подсказки — и какие из них папины,
+     сын не отличит. */
+  /* width:fit-content и align-self обязательны: строка наряда —
+     это flex-колонка, и обычный inline-block растягивался на всю
+     ширину, превращая короткую пометку в широкую полосу. */
+  .parnote{display:inline-block;width:fit-content;align-self:flex-start;
+    font-size:10.5px;font-weight:700;letter-spacing:.03em;
+    color:var(--wk-fg);background:var(--wk-bg);border-radius:6px;
+    padding:1.5px 6px;margin-top:3px;line-height:1.3}
   /* Разбивка итога дня: показывается, только когда есть что на проверке. */
   .brkdn{margin-top:9px;border-top:1px solid var(--edge);padding-top:7px;font-size:12.5px}
   .brkdn div{display:flex;justify-content:space-between;padding:1.5px 0}
@@ -2477,8 +2487,13 @@ function makeRow(t,{showCat=false}={}){
      Написать об этом надо прямо в строке — иначе непонятно, почему галочка
      не ставится, и это читается как поломка. */
   const cool=cooldownWord(t);
-  if(t.note||bt||cool){
+  if(t.note||bt||cool||t.byParent){
     n.textContent=t.note||"";
+    if(t.byParent){
+      const pn=document.createElement("span");
+      pn.className="parnote"; pn.textContent="Поставил папа";
+      n.appendChild(pn);
+    }
     if(bt){
       const bn=document.createElement("span");
       bn.className="backnote"; bn.textContent=bt;
@@ -6668,6 +6683,15 @@ function skinShiftFill(box){
       const sp=document.createElement("span");
       sp.textContent=(catOf(t.cat).name||"");
       tt.appendChild(sp);
+      /* Наряд «Смены» рисуется своей разметкой, а не общей строкой дела,
+         поэтому пометку про папу приходится ставить и здесь. Без неё
+         блок сверху обещает «3 дела», а в наряде рядом стоят обычные
+         подсказки — какие из них папины, сын не отличит. */
+      if(t.byParent){
+        const pn=document.createElement("span");
+        pn.className="parnote"; pn.textContent="Поставил папа";
+        tt.appendChild(pn);
+      }
       if(t.back){
         const bn=document.createElement("span");
         bn.className="backnote"; bn.textContent=backText(t);
