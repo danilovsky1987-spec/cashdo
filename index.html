@@ -993,6 +993,48 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   .mbtn span{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:1px}
   .mbtn .i{width:20px;height:20px}
 
+  /* ---------- Меню «Ещё»: группы ----------
+     Четырнадцать кнопок подряд читались как каша: то, ради чего папа
+     открывает приложение каждый день, стояло девятым, а настройки,
+     которые трогают раз в жизни, — вторым. Теперь по группам, и меню
+     влезает в один экран вместо полутора. */
+  .grp{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin:12px 4px 5px}
+  .grp:first-child{margin-top:0}
+  .mcard{background:var(--soft2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .mcard .mbtn{background:none;border:0;border-radius:0;padding:11px 14px}
+  .mcard .mbtn+.mbtn{border-top:1px solid var(--line)}
+  /* Частое — цветом приёмки, тем же, что горит на главном экране. */
+  .mhot{background:var(--prB-bg);color:var(--prB-fg);border:0;border-radius:13px;
+    padding:11px 14px;margin-bottom:6px}
+  .mhot span{color:var(--prB-fg);opacity:.75}
+  .mhot .i{color:var(--prB-fg)}
+  /* Кружок с числом дел появляется, только когда есть что принимать:
+     иначе цвет и цифра обещали бы работу, которой нет. */
+  .mbadge{margin-left:auto;flex:none;background:var(--prB-fg);color:var(--card);
+    font-size:12px;font-weight:700;min-width:22px;height:22px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;padding:0 7px}
+  .mfold{display:flex;align-items:center;justify-content:space-between;width:100%;
+    font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);background:none;
+    border:0;padding:12px 4px 2px;margin-top:4px;cursor:pointer}
+  .mfold .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--bad-fg);margin-left:6px;vertical-align:middle}
+  .mfold .arr{font-weight:700}
+  .mhide{display:none}
+  /* Состояние связи. Раньше про него можно было узнать, только открыв
+     «Синхронизацию», — а после перестановки она уехала в свёрнутые
+     настройки. Поэтому строка стоит наверху меню и отвечает на вопрос
+     сразу: свежие ли данные на этом телефоне. */
+  .mlink{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--muted);
+    background:none;border:0;padding:0 4px 6px;cursor:pointer}
+  .mlink i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--muted)}
+  .mlink.ok i{background:var(--done)}
+  .mlink.err i{background:var(--bad-fg)}
+  .mlink.busy i{background:var(--prB-fg)}
+  .mlink.err{color:var(--bad-fg)}
+  .mlink b{font-weight:600;color:var(--ink)}
+
   /* Монета, улетающая к счёту. Самое дешёвое, что можно сделать, и
      самое заметное для ребёнка: сумма не появляется молча. */
   .coinfly{position:fixed;z-index:9998;pointer-events:none;
@@ -4415,7 +4457,11 @@ function openMore(){
         <button class="mbtn" id="moMon" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M4.5 19.5V10M9.8 19.5V5.5M15.2 19.5v-6.2M20.5 19.5V8.4"/></svg>
           <div>Мои деньги<span>${(()=>{const m=moneyStats();
-            return m.all ? rub(m.all)+" ₽ · в среднем "+rub(m.avg)+" ₽ в день"
+            /* «В среднем» считается по дням, когда что-то сдавалось, а не по
+               календарю, и рядом с долгом эта цифра успокаивала: 2 120 ₽
+               за пять рабочих дней — 424 ₽, тогда как календарный темп
+               втрое ниже. Теперь прямо сказано, за что она. */
+            return m.all ? rub(m.all)+" ₽ · "+rub(m.avg)+" ₽ в рабочий день"
                          : "по неделям, лучший день, направления";})()}</span></div>
         </button>
         <button class="mbtn" id="moDog" type="button">
@@ -4432,8 +4478,8 @@ function openMore(){
         </button>
         <button class="mbtn" id="moRules" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M5.5 4.6h13v14.8H5.5z"/><path d="M8.6 9h6.8M8.6 12.6h6.8M8.6 16.2h4"/></svg>
-          <div>Правила<span>${(()=>{const p=penActive(),r=p&&ruleById(p.rule);
-            return r?("сейчас: "+r.lose.toLowerCase()):"что теряется и как вернуть";})()}</span></div>
+          <div>Что теряется<span>${(()=>{const p=penActive(),r=p&&ruleById(p.rule);
+            return r?("сейчас: "+r.lose.toLowerCase()):"правила про потери и возврат";})()}</span></div>
         </button>
         <button class="mbtn" id="moHow" type="button">
           <svg class="i" viewBox="0 0 24 24"><path d="M4.5 5.5A2 2 0 0 1 6.5 3.5H11v17H6.5a2 2 0 0 0-2 2z"/><path d="M19.5 5.5a2 2 0 0 0-2-2H13v17h4.5a2 2 0 0 1 2 2z"/></svg>
@@ -4486,7 +4532,101 @@ function openMore(){
     on("#moCats",gate(restoreCats,"Возврат направлений"));
     on("#moOne",gate(openOneOff,"Разовое начисление"));
     b.querySelector("#moBk").onclick=()=>{ exportData(); close(); };
+    menuLayout(b);
   });
+}
+
+/* Раскладка меню: группы, цвет у частого, настройки под одной строкой.
+
+   Кнопки не пересоздаём, а переставляем: обработчики на них уже висят
+   и при перемещении узла никуда не деваются. Поэтому разметка выше
+   остаётся как была, со всеми условиями «только папа» и «на детском
+   устройстве этого нет» — если кнопки в меню нет, группа просто
+   соберётся без неё. */
+function menuLayout(b){
+  const box=b.querySelector(".mrow"); if(!box) return;
+  const кн={};
+  box.querySelectorAll(".mbtn").forEach(x=>{ if(x.id) кн[x.id]=x; });
+  const группы=[
+    ["Каждый день",      ["moChk","moOne","moPay"]],
+    ["Деньги и договор", ["moMon","moDog","moGoal"]],
+    ["Как устроено",     ["moHow","moRules"]]
+  ];
+  const НАСТРОЙКИ=["moSync","moParent","moRole","moTheme","moCats","moBk"];
+  const ждёт=(typeof pendingList==="function") ? pendingList().length : 0;
+  box.innerHTML="";
+
+  /* Первое, что видно в меню: работает ли связь с базой.
+     Нажатие ведёт в настройки синхронизации — туда же, куда вела
+     строка «Синхронизация». */
+  const св=(typeof syncHuman==="function") ? syncHuman() : null;
+  if(св){
+    const l=document.createElement("button");
+    l.type="button"; l.className="mlink "+св.st;
+    const точка=document.createElement("i");
+    const текст=document.createElement("span");
+    const b1=document.createElement("b"); b1.textContent="Связь: ";
+    текст.appendChild(b1);
+    текст.appendChild(document.createTextNode(св.text));
+    l.append(точка,текст);
+    /* Кнопку берём из собранного списка, а не из документа: к этому
+       моменту .mrow уже очищен, и querySelector вернул бы null —
+       строка связи молча переставала открывать настройки. */
+    if(кн.moSync) l.onclick=()=>кн.moSync.click();
+    box.appendChild(l);
+  }
+
+  группы.forEach(([имя,ids])=>{
+    const есть=ids.filter(id=>кн[id]);
+    if(!есть.length) return;
+    const h=document.createElement("div");
+    h.className="grp"; h.textContent=имя;
+    box.appendChild(h);
+    let карта=null;
+    есть.forEach(id=>{
+      const el=кн[id];
+      /* «На проверке» горит, только когда есть что принимать.
+         «Разовое начисление» — действие, доступное всегда, поэтому
+         цвет у него постоянный. */
+      const горит = (id==="moChk" && ждёт>0) || id==="moOne";
+      if(горит){
+        el.classList.add("mhot");
+        if(id==="moChk"){
+          const c=document.createElement("div");
+          c.className="mbadge"; c.textContent=String(ждёт);
+          el.appendChild(c);
+        }
+        box.appendChild(el); карта=null; return;
+      }
+      if(!карта){ карта=document.createElement("div"); карта.className="mcard"; box.appendChild(карта); }
+      карта.appendChild(el);
+    });
+  });
+
+  const прячем=НАСТРОЙКИ.filter(id=>кн[id]);
+  if(прячем.length){
+    const низ=document.createElement("div");
+    низ.className="mcard mhide";
+    прячем.forEach(id=>низ.appendChild(кн[id]));
+    const f=document.createElement("button");
+    f.type="button"; f.className="mfold";
+    /* Точка у строки, если копию давно не сохраняли: единственное
+       из настроек, о чём стоит напомнить самому. */
+    const дней=prefs.lastBackup?daysSince(prefs.lastBackup):null;
+    const тревога=(дней===null||дней>=7);
+    const л=document.createElement("span");
+    л.textContent="Настройки";
+    if(тревога){ const d=document.createElement("i"); d.className="dot"; л.appendChild(d); }
+    const п=document.createElement("span");
+    п.className="arr"; п.textContent=прячем.length+" \u203a";
+    f.append(л,п);
+    f.onclick=()=>{
+      const скрыт=низ.classList.toggle("mhide");
+      п.textContent=скрыт ? прячем.length+" \u203a" : "свернуть";
+    };
+    box.appendChild(f);
+    box.appendChild(низ);
+  }
 }
 
 /* ---------- Синхронизация через Firebase ----------
@@ -4507,25 +4647,51 @@ function openMore(){
    Адрес и код не вшиты в файл: их вводят в самом приложении и они
    лежат отдельно от данных, поэтому не уезжают в бэкапы. */
 const KEY_SYNC="cashdo_sync_v2";
-const SYNC={cfg:null, rev:0, applying:false, timer:0, poll:0, state:"off", msg:""};
+/* okAt — когда последний раз обмен прошёл удачно. Нужен для честного
+   ответа на вопрос «связь вообще работает?»: состояние «ошибка» само
+   по себе не говорит, свежие ли данные на телефоне. Живёт вместе
+   с настройками, чтобы переживать перезапуск. */
+const SYNC={cfg:null, rev:0, applying:false, timer:0, poll:0, state:"off", msg:"", okAt:0};
 
 function syncLoadCfg(){
   try{ SYNC.cfg=JSON.parse(localStorage.getItem(KEY_SYNC)||"null") }catch(e){ SYNC.cfg=null }
   if(SYNC.cfg && typeof SYNC.cfg.rev==="number") SYNC.rev=SYNC.cfg.rev;
+  if(SYNC.cfg && typeof SYNC.cfg.okAt==="number") SYNC.okAt=SYNC.cfg.okAt;
 }
 function syncSaveCfg(){
-  try{ localStorage.setItem(KEY_SYNC,JSON.stringify({...SYNC.cfg, rev:SYNC.rev})) }catch(e){}
+  try{ localStorage.setItem(KEY_SYNC,JSON.stringify({...SYNC.cfg, rev:SYNC.rev, okAt:SYNC.okAt})) }catch(e){}
 }
 function syncOn(){ return !!(SYNC.cfg && SYNC.cfg.url && SYNC.cfg.room); }
 
 function syncMark(st,msg){
   SYNC.state=st; SYNC.msg=msg||"";
+  if(st==="ok"){ SYNC.okAt=Date.now(); try{ syncSaveCfg() }catch(e){} }
   const d=document.querySelector("#moreBtn .dot");
   if(d) d.className="dot"+(st==="ok"?" ok":st==="err"?" err":st==="busy"?" busy":"");
   if(d && st==="off") paintMoreDot();
   const box=document.getElementById("syncStat");
   if(box){ box.className="syncstat "+(st==="ok"?"ok":st==="err"?"err":"off"); box.textContent=msg; }
 }
+/* Человеческий ответ на вопрос «связь работает?».
+   Отдельно от SYNC.msg: тот пишет подробности для разбирательства
+   («сервер ответил 412»), а здесь — одна строка, по которой видно,
+   свежие данные на телефоне или нет. */
+function syncHuman(){
+  if(!syncOn()) return {st:"off", text:"выключена — телефоны не обмениваются"};
+  const был=SYNC.okAt ? minsAgo(SYNC.okAt) : null;
+  const когда = был===null ? "обмена ещё не было"
+    : был<1 ? "обмен только что"
+    : был<60 ? "обмен "+был+" "+plural(был,"минуту","минуты","минут")+" назад"
+    : был<1440 ? "обмен "+Math.round(был/60)+" "+plural(Math.round(был/60),"час","часа","часов")+" назад"
+    : "обмен "+Math.round(был/1440)+" "+plural(Math.round(был/1440),"день","дня","дней")+" назад";
+  if(SYNC.state==="err") return {st:"err", text:"связи нет · "+когда};
+  if(SYNC.state==="busy") return {st:"busy", text:"идёт обмен…"};
+  /* Давно не было удачного обмена — значит второй телефон своих правок
+     не видит, даже если ошибки прямо сейчас нет. */
+  if(был!==null && был>=180) return {st:"err", text:"давно не было связи · "+когда};
+  return {st:"ok", text:"работает · "+когда};
+}
+function minsAgo(ts){ return Math.max(0, Math.round((Date.now()-ts)/60000)); }
 function syncEndpoint(){
   const base=SYNC.cfg.url.replace(/\/+$/,"");
   return base+"/cashdo/"+encodeURIComponent(SYNC.cfg.room)+".json";
