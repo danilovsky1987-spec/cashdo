@@ -1730,6 +1730,103 @@ header.top, .tab[data-v="cal"], #howBtn, #achBtn{display:none!important}
   body:not(.parent) footer{display:none!important}
   /* В виде «Смена» наряд уже показывает те же дела с ценами. */
   body:not(.parent)[data-skin="shift"] #todayPlanBox{display:none}
+
+  /* ---------- План на неделю (v57) ---------- */
+  .planmodal{max-width:520px}
+  .pldays{display:flex;gap:6px;overflow-x:auto;margin:0 -2px 10px;padding:2px;-webkit-overflow-scrolling:touch}
+  .plday{flex:0 0 auto;border:1.5px solid var(--line);background:var(--card);color:var(--muted);
+    border-radius:12px;padding:6px 8px;text-align:center;min-width:50px;font:inherit;font-size:12px;cursor:pointer}
+  .plday b{display:block;font-family:var(--display);font-size:15px;color:var(--ink)}
+  .plday i{display:block;font-style:normal;font-size:10.5px;margin-top:1px}
+  .plday.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+  .plday.on b{color:var(--card)}
+  .plday.has i{color:var(--done);font-weight:700}
+  .plsec{display:flex;align-items:center;gap:8px;margin:12px 0 6px;font-size:12px;color:var(--muted)}
+  .plbadge{display:inline-block;padding:2px 7px;border-radius:6px;color:#fff;font-size:10.5px;
+    font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+  .plbadge.m{background:#e8590c}.plbadge.h{background:#1c7ed6}.plbadge.b{background:#2b8a3e}
+  .plrow{display:grid;grid-template-columns:1fr auto 26px;gap:8px;align-items:start;
+    padding:8px 8px 8px 10px;border-radius:10px;margin-bottom:5px}
+  .plrow.m{background:rgba(232,89,12,.09)}.plrow.b{background:rgba(43,138,62,.10)}
+  .plrow.star{box-shadow:inset 0 0 0 2px #e8590c}
+  .plrow .pln{font-size:13.5px;font-weight:600;line-height:1.3}
+  .plrow .plhint{margin-top:3px;font-size:12px;color:var(--muted);line-height:1.35;cursor:pointer}
+  .plrow .plhint b{color:var(--ink);font-weight:600}
+  .plrow .plhint.empty{color:var(--muted);text-decoration:underline dotted}
+  .plrow .plhintedit{display:block;width:100%;margin-top:4px;border:1.5px solid var(--edge);border-radius:8px;
+    background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;padding:5px 7px;resize:vertical}
+  .plrow .plp{font-family:var(--display);font-weight:700;font-size:14px;white-space:nowrap}
+  .plrow .plx{border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:0}
+  .pltag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:6px;padding:1px 6px;margin-top:3px}
+  .pltag.ok{background:var(--done);color:#fff}
+  .pltag.rest{background:var(--soft2,#f1efeb);color:var(--muted)}
+  .pladd{width:100%;border:1.5px dashed var(--edge);background:transparent;border-radius:10px;
+    padding:7px;font:inherit;font-size:13px;color:var(--muted);margin-bottom:2px;cursor:pointer}
+  .plempty{font-size:12.5px;color:var(--muted);padding:4px 2px 8px}
+  .plnote{font-size:12px;color:var(--muted);margin:0 2px 4px;line-height:1.4}
+  .planmodal .picksum b{white-space:nowrap}
+  /* Пометка раздела и «готово, когда» в строке дела у сына. */
+  .parnote.m{background:#e8590c;color:#fff}
+  .parnote.b{background:#2b8a3e;color:#fff}
+  .hintnote{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35;font-weight:400}
+  .hintnote b{font-weight:600;color:var(--ink)}
+  /* В наряде «Смены» у подписей свой общий стиль (серый, в одну строку
+     с многоточием) — его приходится перебить точнее. */
+  .ord .t span.parnote{display:inline-block}
+  .ord .t span.parnote.m,.ord .t span.parnote.b{color:#fff}
+  .ord .t span.hintnote{white-space:normal;overflow:visible;font-size:11.5px;line-height:1.35}
+  .ord.done .t span.hintnote{display:none}
+  /* Подсказка «синхронизация не подключена» на главном. */
+  .synchint{display:flex;flex-direction:column;gap:6px;background:rgba(232,89,12,.10);
+    border:1px solid rgba(232,89,12,.35);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+  .synchint b{font-size:14.5px}
+  .synchint span{font-size:13px;color:var(--muted);line-height:1.4}
+  .synchint .btn{align-self:flex-start;margin-top:4px}
+  /* Замок «после обязательного». */
+  .pr .lk{display:block;font-size:11px;color:#b35c00;font-weight:600;margin-top:2px}
+  html[data-theme="dark"] .pr .lk{color:#f0a060}
+  .pr button.ok[disabled]{opacity:.35;cursor:not-allowed}
+  .pr .anyway{display:block;border:0;background:transparent;color:var(--muted);font:inherit;font-size:11px;
+    text-decoration:underline;margin-top:3px;padding:0;cursor:pointer}
+  .lknote{margin-top:8px;font-size:12.5px;line-height:1.4;background:rgba(232,89,12,.10);color:#9a4a00;
+    border-radius:10px;padding:7px 10px}
+  .lknote.okk{background:rgba(43,138,62,.12);color:#1f6b33}
+  html[data-theme="dark"] .lknote{color:#f0a060} html[data-theme="dark"] .lknote.okk{color:#7fd69a}
+  /* Лист для печати: на экране его нет, при печати — только он. */
+  #planPrint{display:none}
+  @media print{
+    body.planprinting > *:not(#planPrint){display:none!important}
+    body.planprinting{background:#fff!important;color:#1f2328}
+    body.planprinting #planPrint{display:block;font:14px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1f2328}
+    #planPrint *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    #planPrint h1{font-size:24px;margin:0 0 6px}
+    #planPrint p{margin:5px 0}
+    #planPrint i{display:inline-block;width:200px;border-bottom:2px solid #1f2328;height:1.2em;vertical-align:bottom}
+    #planPrint .psgoal{border:2px dashed #f2c94c;background:#fffbe8;border-radius:10px;padding:8px 12px;margin:10px 0}
+    #planPrint .psday{page-break-before:always}
+    #planPrint .pshead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1f2328;padding-bottom:6px;margin-bottom:8px}
+    #planPrint .pshead h2{margin:0;font-size:26px}
+    #planPrint .psdate{color:#6a6f76;font-size:16px}
+    #planPrint .pssum{text-align:right;color:#6a6f76;font-size:13px}
+    #planPrint .pssum b{display:block;font-size:21px;color:#1f2328}
+    #planPrint h3{font-size:14px;font-weight:400;color:#6a6f76;margin:12px 0 5px;display:flex;gap:8px;align-items:center}
+    #planPrint .psrow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;padding:7px 10px;border-radius:10px;margin-bottom:4px;break-inside:avoid}
+    #planPrint .psrow.m{background:#fff4ec}#planPrint .psrow.h{background:#eef6ff}#planPrint .psrow.b{background:#effaf1}
+    #planPrint .psrow.star{outline:3px solid #e8590c}
+    #planPrint .psbox{width:26px;height:26px;border:3px solid #1f2328;border-radius:6px;background:#fff}
+    #planPrint .pst{font-weight:600}
+    #planPrint .psok{font-size:12.5px;color:#6a6f76}
+    #planPrint .psok b{color:#1f2328}
+    #planPrint .psp{font-weight:700;white-space:nowrap}
+    #planPrint .psp small{display:block;font-weight:400;font-size:10.5px;color:#6a6f76;text-align:right}
+    #planPrint .psdots{display:flex;gap:4px;margin-top:4px}
+    #planPrint .psdots span{width:18px;height:18px;border-radius:50%;border:2px solid #1c7ed6;font-size:10px;display:flex;align-items:center;justify-content:center;color:#1c7ed6;font-weight:700}
+    #planPrint .psdots span.now{background:#1c7ed6;color:#fff}
+    #planPrint .psdots span.was{background:#cfe3fb}
+    #planPrint .psfoot{display:flex;justify-content:space-between;gap:12px;border-top:2px dashed #e3ddd0;margin-top:10px;padding-top:8px}
+    #planPrint .psfoot i{width:130px}
+    @page{size:A4;margin:12mm}
+  }
 </style>
 </head>
 <body>
@@ -2032,6 +2129,11 @@ const SEED=[
  ["c3","Перебрать, помыть и расставить всю обувь в прихожей","B","",200],
  ["c3","Собрать мебель по инструкции вместе с папой","A","предмет",450],
  ["c3","Помыть плинтусы и двери во всей квартире","B","",280],
+ ["c3","Помочь на даче полный рабочий день","A","день",650],
+ ["c3","Разобрать балкон или кладовку до конца","A","",550],
+ ["c3","Генеральная уборка своей комнаты с разбором шкафа","A","",500],
+ ["c3","Разобрать антресоли, отсортировать на выброс и отдать","A","",400],
+ ["c3","Разморозить и вымыть морозилку","A","",320],
  ["c4","Приготовить завтрак на всю семью","B","",150],
  ["c4","Приготовить полноценный ужин по рецепту самостоятельно","A","",320],
  ["c4","Почистить овощи на суп","C","",60],
@@ -2042,7 +2144,7 @@ const SEED=[
  ["c5","Пришить пуговицу или зашить шов","C","",80],
  ["c5","Разобрать свой шкаф, отложить малое на отдать","B","",200],
  ["c5","Почистить обувь всей семьи","B","",120],
- ["c8","В дни без кружков сел за уроки до 16:00 сам, без напоминаний","A","неделя",300],
+ ["c8","Сам сел за уроки не позже 15:35, без напоминаний — 5 дней подряд","A","неделя",300],
  ["c8","Каждый день сам сказал, что задали, и записал — 5 дней подряд","B","неделя",150],
  ["c8","Собрал портфель с вечера — 5 дней подряд","B","неделя",120],
  ["c8","Разобрал ошибки после контрольной и переписал начисто","B","",180],
@@ -2103,62 +2205,61 @@ const seedTasks=()=>SEED.map((s,i)=>({id:"s"+i,cat:s[0],text:s[1],prio:s[2],note
    Осторожность прежняя: убранное уходит в корзину, а не в никуда —
    тридцать дней его можно вернуть; отмеченное, принятое и добавленное
    вручную не трогается никогда, иначе исчезли бы деньги и история. */
-const CATALOG_REV=5;
+const CATALOG_REV=8;
 /* Всё, что когда-либо убиралось из каталога, накопительно.
    Список нужен именно перечнем: искать «чего нет в SEED» нельзя —
    под нож попало бы переименованное вручную дело. */
 const CATALOG_RETIRED=new Set([
-  /* Убрано 21 сентября по решению отца: дело ждало гостей и потому
-     почти никогда не было доступно. */
-  "Помыть посуду после гостей — большая партия",
-  "Разобрать мусор по контейнерам: пластик, бумага, стекло",
-  "Протереть кухонный стол и плиту после ужина",
-  "Накрыть на стол и убрать со стола",
-  "Мелкий ремонт: лампочка, батарейки, подкачать колесо велосипеда",
-  "Разобрать холодильник: выкинуть просрочку, протереть полки",
-  "Помыть микроволновку или духовку внутри",
-  "Собрать вторсырьё и отвезти в приёмку",
-  "Помыть окно изнутри дочиста",
-  "Разобрать балкон или кладовку до конца",
-  "Генеральная уборка своей комнаты с разбором шкафа",
-  "Разобрать антресоли, отсортировать на выброс и отдать",
-  "Снять, постирать и повесить обратно шторы",
-  "Разморозить и вымыть морозилку",
-  "Испечь что-то к чаю с нуля, не из полуфабриката",
-  "Собрать себе ланч-бокс — 5 дней подряд",
-  "Погладить рубашку папы",
-  "Почистить и убрать сезонную одежду на хранение",
-  "Неделя без опозданий на первый урок",
-  "Догнал пропущенную по болезни тему без напоминаний",
-  "Написал программу, сайт или бота, который работает",
-  "Неделя занятий на инструменте по 30 минут в день",
-  "Выучил новое произведение целиком",
   "Бережно обошёлся с вещью там, где раньше сломал бы",
+  "В дни без кружков сел за уроки до 16:00 сам, без напоминаний",
+  "Выучил новое произведение целиком",
+  "Генеральная уборка своей комнаты с разбором шкафа",
+  "Догнал пропущенную по болезни тему без напоминаний",
+  "Домашка сделана до 19:00 без напоминаний — 5 дней подряд",
+  "Записать бабушку к врачу и напомнить в день приёма",
+  "Испечь что-то к чаю с нуля, не из полуфабриката",
+  "Мелкий ремонт: лампочка, батарейки, подкачать колесо велосипеда",
+  "Накрыть на стол и убрать со стола",
+  "Написал программу, сайт или бота, который работает",
+  "Настроить роутер, принтер или умную колонку",
+  "Неделя без замечаний в электронном журнале",
+  "Неделя без опозданий на первый урок",
+  "Неделя занятий на инструменте по 30 минут в день",
+  "Неделя: каждый день сам звонил или писал бабушке",
   "Отказался от покупки, потому что «не очень-то и нужно»",
-  "Помочь на даче полный рабочий день",
-  "Прополоть грядку",
-  "Расчистить снег у дома, дорожку и машину",
-  "Сгрести листья и вынести в мешках",
-  "Покрасить забор, скамейку, калитку",
-  "Пересадить цветы, ухаживать за рассадой",
   "Отсканировать и разложить по папкам семейный архив документов",
   "Оцифровать старые фото или видеокассеты",
-  "Сделать презентацию для родителя по работе",
-  "Разобрать и подписать семейный фотоальбом за год",
-  "Сравнить товар по 5 магазинам и свести в таблицу",
-  "Настроить роутер, принтер или умную колонку",
-  "Почистить память на компьютерах семьи и сделать бэкап",
-  "Смонтировать видео с семейного праздника",
+  "Пересадить цветы, ухаживать за рассадой",
+  "Погладить рубашку папы",
   "Позвонить бабушке и поговорить не меньше десяти минут",
-  "Сходить бабушке в аптеку или магазин по списку",
-  "Съездить к бабушке и помочь по дому полдня",
-  "Записать бабушку к врачу и напомнить в день приёма",
+  "Покрасить забор, скамейку, калитку",
+  "Помочь на даче полный рабочий день",
+  "Помыть микроволновку или духовку внутри",
+  "Помыть окно изнутри дочиста",
+  "Помыть посуду после гостей — большая партия",
   "Починить или настроить бабушке технику: телевизор, интернет, стиральную машину",
+  "Почистить и убрать сезонную одежду на хранение",
+  "Почистить память на компьютерах семьи и сделать бэкап",
+  "Прополоть грядку",
+  "Протереть кухонный стол и плиту после ужина",
+  "Разморозить и вымыть морозилку",
+  "Разобрать антресоли, отсортировать на выброс и отдать",
+  "Разобрать балкон или кладовку до конца",
+  "Разобрать и подписать семейный фотоальбом за год",
+  "Разобрать мусор по контейнерам: пластик, бумага, стекло",
   "Разобрать с бабушкой старые фотографии и подписать их",
+  "Разобрать холодильник: выкинуть просрочку, протереть полки",
+  "Расчистить снег у дома, дорожку и машину",
+  "Сгрести листья и вынести в мешках",
   "Сделать подарок родным своими руками к празднику",
-  "Неделя: каждый день сам звонил или писал бабушке",
-  "Домашка сделана до 19:00 без напоминаний — 5 дней подряд",
-  "Неделя без замечаний в электронном журнале"
+  "Сделать презентацию для родителя по работе",
+  "Смонтировать видео с семейного праздника",
+  "Снять, постирать и повесить обратно шторы",
+  "Собрать вторсырьё и отвезти в приёмку",
+  "Собрать себе ланч-бокс — 5 дней подряд",
+  "Сравнить товар по 5 магазинам и свести в таблицу",
+  "Сходить бабушке в аптеку или магазин по списку",
+  "Съездить к бабушке и помочь по дому полдня"
 ]);
 /* Переезды дела между направлениями: дело нужное, а направление убрали. */
 const CATALOG_MOVE={"Настроить телефон бабушке и научить пользоваться":"c13"};
@@ -2591,9 +2692,10 @@ function makeRow(t,{showCat=false}={}){
   if(t.note||bt||cool||t.byParent){
     n.textContent=t.note||"";
     if(t.byParent){
-      const pn=document.createElement("span");
-      pn.className="parnote"; pn.textContent="Поставил папа";
-      n.appendChild(pn);
+      n.appendChild(parNote(t));
+      /* «Готово, когда» — только пока дело не сдано: дальше оно уже ни к чему. */
+      const hn=!t.done?hintOf(t):"";
+      if(hn) n.appendChild(hintNote(hn));
     }
     if(bt){
       const bn=document.createElement("span");
@@ -3430,6 +3532,8 @@ function renderCal(){
 
 /* ---------- Общий рендер ---------- */
 function render(){
+  /* План на неделю ставит сегодняшние дела в наряд (без touch, см. planApply). */
+  planApply();
   /* Скрытые вкладки не должны открываться даже из сохранённого состояния. */
   if(state.view==="cats"||state.view==="cal") state.view="today";
   const v=state.view;
@@ -3453,6 +3557,7 @@ function render(){
   else if(v==="list") renderList();
   else if(v==="cal") renderCal();
   else renderCats();
+  renderSyncHint();
   const total=live().length,done=live().filter(t=>t.done).length;
   const T=todayISO();
   const td=live().filter(t=>t.date===T);
@@ -4428,10 +4533,6 @@ function openMore(){
             :(MONEY_OWED>0?"к выдаче "+fmt(MONEY_OWED)
               :"пока всё идёт в счёт крышки")}</span></div>
         </button>
-        <button class="mbtn" id="moSync" type="button">
-          <svg class="i" viewBox="0 0 24 24"><path d="M20.2 12.4a8.2 8.2 0 0 1-13.9 5.4M3.8 11.6a8.2 8.2 0 0 1 13.9-5.4"/><path d="M3.4 19.4v-4.2h4.2M20.6 4.6v4.2h-4.2"/></svg>
-          <div>Синхронизация<span>${isParent()?(SYNC.msg||(syncOn()?"включена":"выключена")):"только папа"}</span></div>
-        </button>
         ${isChildDevice()?"":`<button class="mbtn" id="moParent" type="button">
           <svg class="i" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/><path d="M12 14.4v2.4"/></svg>
           <div>Родительский режим<span>${isParent()?"включён — можно менять цены и принимать дела"
@@ -4445,6 +4546,15 @@ function openMore(){
              весь тот блок скрыт на детском устройстве, и строка вместе
              с ним. Именно так получалась ловушка — ошибочный выбор «Сына»
              на папином телефоне отключал приёмку без возможности вернуть. -->
+        <!-- Синхронизация тоже ЗА пределами блока «только папа» (6 октября).
+             Айфон даёт приложению с экрана «Домой» своё, пустое хранилище.
+             На телефоне сына кнопки не было вовсе — и вернуть данные было
+             нечем. Подключить может любой, менять и отключать — только папа. -->
+        <button class="mbtn" id="moSync" type="button">
+          <svg class="i" viewBox="0 0 24 24"><path d="M20.2 12.4a8.2 8.2 0 0 1-13.9 5.4M3.8 11.6a8.2 8.2 0 0 1 13.9-5.4"/><path d="M3.4 19.4v-4.2h4.2M20.6 4.6v4.2h-4.2"/></svg>
+          <div>Синхронизация<span>${isParent()?(SYNC.msg||(syncOn()?"включена":"выключена"))
+            :(syncOn()?(SYNC.msg||"включена"):"не подключена — нажми, чтобы подключить")}</span></div>
+        </button>
         <button class="mbtn" id="moRole" type="button">
           <svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.5 18.6h3"/></svg>
           <div>Этот телефон<span>${deviceRole()===ROLE_CHILD
@@ -4507,7 +4617,9 @@ function openMore(){
     /* На детском устройстве этих строк нет — вешать обработчики не на что. */
     const on=(id,fn)=>{ const el=b.querySelector(id); if(el) el.onclick=fn; };
     on("#moPay",gate(openPayout,"Отметка выплаты"));
-    on("#moSync",gate(openSync,"Настройки синхронизации"));
+    /* Подключить — любой (иначе пустой телефон не вернуть), смотреть
+       статус — любой, менять и отключать — только папа (это внутри openSync). */
+    on("#moSync",()=>{ close(); openSync(); });
     const mp=b.querySelector("#moParent");
     if(mp) mp.onclick=()=>{ close(); openParentMode(); };
     /* Строка видна всем, а не только родителю, и вот почему.
@@ -4721,7 +4833,7 @@ function syncPack(){
        приёмка только на папином телефоне (роль устройства, см. deviceRole),
        и возить нечего. Отправляем null — так ключ в базе удаляется,
        и старый ПИН оттуда вычищается при первой же синхронизации. */
-    pin:null, wonWeek:prefs.wonWeek};
+    pin:null, pinH:prefs.pinH||null, wonWeek:prefs.wonWeek};
 }
 /* Возраст состояния дела. Отдельного поля времени не заводим: всё, что
    меняет дело, и так оставляет метку — отметили, приняли, вернули,
@@ -4876,7 +4988,8 @@ function syncApply(d){
     }
     if(typeof d.weekGoal==="number") prefs.weekGoal=d.weekGoal;
     if(typeof d.weekGoalRub==="number") prefs.weekGoalRub=d.weekGoalRub;
-    /* Входящий ПИН игнорируем: он локальный и приезжать не должен. */
+    /* Входящий ПИН строкой игнорируем. Едет только отпечаток (pinH). */
+    if(d.pinH && d.pinH.h && pinNewer(d.pinH, prefs.pinH)) prefs.pinH=d.pinH;
     if("penalty" in d) { if(d.penalty) prefs.penalty=d.penalty; else delete prefs.penalty; }
     if("sprint" in d) { if(d.sprint) prefs.sprint=d.sprint; else delete prefs.sprint; }
     /* Журнал сливаем по id, а не заменяем: запись рождается на папином
@@ -5003,8 +5116,77 @@ const SYNC_RULES=`{
   }
 }`;
 
+/* Окно синхронизации не для папы: на телефоне сына или когда родительский
+   режим выключен. Если связь не подключена — только поле «Код семьи».
+   Если подключена — статус и «Обменяться сейчас», без «Отключить». */
+function openSyncSimple(){
+  modal((b,close)=>{
+    const st=SYNC.state==="ok"?"ok":SYNC.state==="err"?"err":"off";
+    if(syncOn()){
+      b.innerHTML='<h4>Синхронизация</h4>'
+        +'<div class="syncstat '+st+'" id="syncStat">'+planEsc(SYNC.msg||"Синхронизация включена")+'</div>'
+        +'<p style="font-size:13px;color:var(--muted);margin:0 0 12px">Связь настроена. Поменять или отключить её может только папа.</p>'
+        +'<div class="modalfoot"><button class="btn ghost" id="ssClose" type="button">Закрыть</button>'
+        +'<button class="btn" id="ssNow" type="button">Обменяться сейчас</button></div>';
+      b.querySelector("#ssClose").onclick=close;
+      b.querySelector("#ssNow").onclick=async()=>{ await syncPull(false); await syncPush();
+        const s=b.querySelector("#syncStat"); if(s){ s.textContent=SYNC.msg||""; s.className="syncstat "+(SYNC.state==="ok"?"ok":SYNC.state==="err"?"err":"off"); } };
+      return;
+    }
+    b.innerHTML='<h4>Подключить синхронизацию</h4>'
+      +'<div class="syncstat '+st+'" id="syncStat">'+planEsc(SYNC.msg||"Синхронизация выключена")+'</div>'
+      +'<p style="font-size:13.5px;margin:0 0 10px">Введи <b>код семьи</b> — тот же, что на папином телефоне. '
+      +'Его видно у папы: «⋯» → «Синхронизация». После подключения все дела и деньги вернутся сюда.</p>'
+      +'<div class="syncf"><label>Код семьи</label><input id="ssRoom" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="cashdo-…"></div>'
+      +'<details style="font-size:12.5px;color:var(--muted);margin:0 0 10px"><summary>Другая база</summary>'
+      +'<div class="syncf" style="margin-top:6px"><label>Адрес базы</label><input id="ssUrl" type="url" inputmode="url" value="'+SYNC_DEFAULT_URL+'"></div></details>'
+      +'<div class="modalfoot"><button class="btn ghost" id="ssNo" type="button">Отмена</button>'
+      +'<button class="btn" id="ssOk" type="button">Подключить</button></div>';
+    b.querySelector("#ssNo").onclick=close;
+    b.querySelector("#ssOk").onclick=async()=>{
+      const url=b.querySelector("#ssUrl").value.trim()||SYNC_DEFAULT_URL;
+      const room=b.querySelector("#ssRoom").value.trim();
+      const s=()=>{ const e=b.querySelector("#syncStat"); if(e){ e.textContent=SYNC.msg||""; e.className="syncstat "+(SYNC.state==="ok"?"ok":SYNC.state==="err"?"err":"off"); } };
+      if(!room){ syncMark("err","Введи код семьи"); s(); return; }
+      pinForgetIfRoomChanged(room);
+      SYNC.cfg={url,room}; SYNC.rev=0; syncSaveCfg();
+      syncMark("busy","Проверяю связь…"); s();
+      const row=await syncPull(true);
+      if(SYNC.state==="err"){ s(); return; }
+      /* Пустой код — ошибка набора: в такой «семье» ничего нет, и пустой
+         телефон молча завёл бы новую. Не подключаем, просим проверить. */
+      if(!row){ SYNC.cfg=null; try{ localStorage.removeItem(KEY_SYNC) }catch(e){}
+        syncMark("err","По такому коду ничего не нашлось. Проверь код у папы — буква в букву."); s(); return; }
+      const was=live().length;
+      SYNC.rev=row.rev; syncSaveCfg(); syncApply(row.data);
+      syncMark("ok","Подключено. Данные с папиного телефона на месте.");
+      await syncPush(); syncStart(); render(); close();
+    };
+  });
+}
+/* Подсказка на главном экране, пока связь не подключена. Ровно тот случай,
+   из-за которого её завели: приложение добавили на экран «Домой», айфон
+   выдал ему пустое хранилище, и человек видит пустой список. */
+function renderSyncHint(){
+  /* Ставим над шапкой долга (#moneyBar): #viewToday начинается ниже
+     сервисных блоков, и подсказка оказывалась на втором экране. */
+  const top=$("#moneyBar"); if(!top||!top.parentNode) return;
+  let el=document.getElementById("syncHint");
+  if(syncOn() || state.view!=="today"){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement("div"); el.id="syncHint"; el.className="synchint"; }
+  if(top.previousSibling!==el) top.parentNode.insertBefore(el, top);
+  el.innerHTML='<b>Синхронизация не подключена</b>'
+    +'<span>Если приложение только что добавлено на экран «Домой», айфон завёл ему отдельное пустое хранилище. '
+    +'Подключи код семьи — дела и деньги вернутся.</span>'
+    +'<button type="button" class="btn">Подключить</button>';
+  el.querySelector("button").onclick=openSync;
+}
+/* Адрес базы этой семьи. Он не секрет — секрет код семьи. Подставляем,
+   чтобы на новом телефоне вводить только код. */
+const SYNC_DEFAULT_URL="https://cashdo-56ff1-default-rtdb.europe-west1.firebasedatabase.app";
 function openSync(){
   const c=SYNC.cfg||{};
+  if(!isParent()) return openSyncSimple();
   modal((b,close)=>{
     b.innerHTML=`<h4>Синхронизация</h4>
       <div class="syncstat ${SYNC.state==="ok"?"ok":SYNC.state==="err"?"err":"off"}" id="syncStat">${
@@ -5019,10 +5201,11 @@ function openSync(){
         Адрес базы виден вверху страницы Realtime Database.</p>
       <div class="syncf"><label>Адрес базы</label>
         <input id="fbUrl" type="url" inputmode="url"
-          placeholder="https://имя-default-rtdb.firebasedatabase.app" value="${c.url||""}"></div>
+          placeholder="https://имя-default-rtdb.firebasedatabase.app" value="${c.url||SYNC_DEFAULT_URL}"></div>
       <div class="syncf"><label>Код семьи</label>
         <input id="fbRoom" type="text" placeholder="длинный и непростой" value="${c.room||""}">
-        <div class="hint">Одинаковый на обоих устройствах. Кто знает адрес и код — видит и правит список.</div></div>
+        <div class="hint">Одинаковый на обоих устройствах. Кто знает адрес и код — видит и правит список.
+        Чтобы подключить телефон сына, введите там этот же код: «⋯» → «Синхронизация».</div></div>
       <div class="modalfoot">
         ${c.url?'<button class="btn ghost" id="fbOff">Отключить</button>':''}
         <button class="btn ghost" id="fbGen">Придумать код</button>
@@ -5042,6 +5225,7 @@ function openSync(){
       const url=b.querySelector("#fbUrl").value.trim();
       const room=b.querySelector("#fbRoom").value.trim();
       if(!url||!room){ syncMark("err","Заполните оба поля"); return; }
+      pinForgetIfRoomChanged(room);
       SYNC.cfg={url,room}; SYNC.rev=0; syncSaveCfg();
       syncMark("busy","Проверяю связь…");
       const row=await syncPull(true);
@@ -5345,17 +5529,39 @@ function sprintTake(pl){
   savePrefs(); save(); render();
 }
 function naryadCard(list){
+  /* naryadToday() отдаёт только несделанное, поэтому счёт «X из N» раньше
+     вечно стоял на нуле. Считаем по всему сегодняшнему наряду папы. */
+  const T=todayISO();
+  const весь=live().filter(t=>t.byParent && t.date===T);
+  if(весь.length>=list.length) list=весь;
   const el=document.createElement("div");
   el.className="spr";
-  const сделано=list.filter(t=>t.done).length;
-  const сумма=list.reduce((a,t)=>a+moneyOf(t),0);
+  /* С разделами плана счёт идёт по обязательному, бонусы — отдельной
+     строкой: «2 из 6» при четырёх обязательных читалось бы как недоделка. */
+  const бонус=list.filter(t=>secOf(t)==="b");
+  const главное=бонус.length?list.filter(t=>secOf(t)!=="b"):list;
+  const сделано=главное.filter(t=>t.done).length;
+  const сумма=главное.reduce((a,t)=>a+moneyOf(t),0);
+  const бонусЖдёт=бонус.filter(t=>!t.done);
+  const бонусСумма=бонусЖдёт.reduce((a,t)=>a+moneyOf(t),0);
   const заголовок=isParent()?"Ты поставил сыну на сегодня":"Папа поставил на сегодня";
-  const подпись=сделано===list.length
-    ? "всё сделано, ждём приёмку"
-    : "на "+rub(сумма)+" ₽ · дела стоят в наряде";
+  const хвост=бонусЖдёт.length?" · ещё "+бонусЖдёт.length+" по желанию на "+rub(бонусСумма)+" ₽":"";
+  const подпись=сделано===главное.length
+    ? (бонус.length?"обязательное сделано"+(хвост||", ждём приёмку"):"всё сделано, ждём приёмку")
+    : (бонус.length?"обязательное на "+rub(сумма)+" ₽"+хвост:"на "+rub(сумма)+" ₽ · дела стоят в наряде");
   const шапка='<div class="lab">'+заголовок+'</div>';
-  const цифра='<div class="big">'+сделано+" из "+list.length+'</div>';
+  const цифра='<div class="big">'+сделано+" из "+главное.length+'</div>';
   el.innerHTML=шапка+цифра+'<div class="sub">'+подпись+'</div>';
+  /* Вариант 2А: сыну сразу видно, почему бонусы и своё ждут. */
+  if(бонус.length || live().some(t=>t.done && !t.ok && planLock(t))){
+    const осталось=главное.length-сделано;
+    const n=document.createElement("div");
+    n.className="lknote"+(осталось?"":" okk");
+    n.textContent=осталось
+      ? "Бонусы и своё папа примет, когда сделаешь всё обязательное — осталось "+осталось+"."
+      : "Обязательное сделано — бонусы и своё папа теперь может принять.";
+    el.appendChild(n);
+  }
   return el;
 }
 /* Блок серий. Показываем все доступные, а не только начатые: серия,
@@ -5384,9 +5590,13 @@ function renderRuns(){
   шапка.className="lab"; шапка.textContent="Серии недели";
   const под=document.createElement("div");
   под.className="sub";
+  /* Сколько всего лежит в сериях на этой неделе. Цифра нужна ровно затем,
+     чтобы решение «отметить стол» сравнивалось не с нулём, а с суммой:
+     серии дают больше, чем вечер уборки, но этого не видно, пока не сказано. */
+  const наКону=всеСтроки.filter(x=>x.st.n<x.st.need).reduce((a,x)=>a+moneyOf(x.t),0);
   под.textContent = идут
-    ? "идёт "+идут+" "+plural(идут,"серия","серии","серий")+" · отмечай каждый день"
-    : "отмечай день — за пять подряд платят целиком";
+    ? "идёт "+идут+" "+plural(идут,"серия","серии","серий")+" · на кону "+rub(наКону)+" ₽ за неделю"
+    : "отмечай день — за пять подряд платят целиком · "+rub(наКону)+" ₽ на неделе";
   el.append(шапка,под);
 
   строки.forEach(({t,st})=>{
@@ -5457,7 +5667,10 @@ function renderSprint(){
   /* Наряд, собранный папой руками, идёт впереди спринта: это уже
      решённое дело, а спринт — только предложение. Два блока об одном
      и том же друг друга глушат, поэтому показываем что-то одно. */
-  const нар=naryadToday();
+  /* Сделанное тоже считаем: раньше, стоило сыну отметить весь наряд,
+     блок пропадал, и вместо «4 из 4» вылезал спринт. Карточка уходит,
+     когда папа всё принял (приёмка снимает дату). */
+  const нар=live().filter(t=>t.byParent && t.date===todayISO());
   if(!took && нар.length){ box.appendChild(naryadCard(нар)); return; }
   if(!took && !pl) return;
   const el=document.createElement("div");
@@ -5696,7 +5909,9 @@ const isChildDevice = () => deviceRole()===ROLE_CHILD;
 function setDeviceRole(r){
   prefs.role=r;
   if(r===ROLE_CHILD){
-    /* На детском устройстве ПИН не нужен и хранить его незачем. */
+    /* Старый ПИН строкой на детском не храним. Отпечаток (pinH) оставляем:
+       он общий для семьи, без него «Папин» на этом телефоне снова дал бы
+       придумать свой ПИН. */
     delete prefs.pin; setParent(false);
   }
   savePrefs(); render();
@@ -5747,7 +5962,112 @@ function setParent(on){
    даже если метка осталась от прошлой версии. */
 const isParent = () => PARENT && !isChildDevice();
 const PIN_LEN=6;
-const hasPin = () => typeof prefs.pin==="string" && prefs.pin.length===PIN_LEN;
+/* ПИН теперь — отпечаток в общей базе (см. ниже, «Один ПИН на семью»). */
+const hasPin = () => { pinMigrate(); return !!(prefs.pinH && prefs.pinH.h); };
+/* ---------- Один ПИН на семью (вариант А, 6 октября) ----------
+   Было: ПИН жил только в телефоне (prefs.pin) и по сети не ездил. Дыра:
+   на любом телефоне без ПИНа — новом, или где приложение заново добавили
+   на экран «Домой» — сын мог «Этот телефон» → «Папин» → придумать свой
+   ПИН и принять свои же дела.
+
+   Стало: в общую базу кладётся не ПИН, а его отпечаток (pinH): соль и
+   SHA-256, прогнанный PIN_ROUNDS раз. Из отпечатка ПИН не прочитать —
+   только перебором, а перебор миллиона вариантов по 20 000 хэшей каждый
+   на телефоне или в браузере — долго. Против подростка этого достаточно,
+   против взрослого программиста — нет, и это сказано отцу.
+
+   Правила:
+   1. Придумать ПИН можно, только когда связь подключена и в базе ПИНа нет.
+      Без связи сверять не с чем — и пустой телефон стал бы «папой».
+   2. Сменить ПИН — только зная старый (из родительского режима). Версия
+      отпечатка (v) растёт, при обмене побеждает бо́льшая; при равной —
+      более ранний (кто первый, тот и папа).
+   3. Подключили другой код семьи — свой отпечаток стираем: в чужой семье
+      ПИН не наш, а «папа» из пустой комнаты не должен прийти в настоящую. */
+const PIN_ROUNDS=20000;
+function sha256hex(str){
+  /* Компактный SHA-256 — без crypto.subtle: тот асинхронный и в части
+     встроенных браузеров айфона капризничает. */
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const bytes=unescape(encodeURIComponent(str));
+  const l=bytes.length, words=[];
+  for(let i=0;i<l;i++) words[i>>2]|=(bytes.charCodeAt(i)&255)<<(24-(i%4)*8);
+  words[l>>2]|=0x80<<(24-(l%4)*8);
+  const n=((l+8)>>6)+1; words[n*16-1]=l*8;
+  for(let i=0;i<n*16;i++) words[i]=words[i]|0;
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const W=new Array(64), r=(x,k)=>(x>>>k)|(x<<(32-k));
+  for(let b=0;b<n*16;b+=16){
+    for(let i=0;i<16;i++) W[i]=words[b+i];
+    for(let i=16;i<64;i++){
+      const s0=r(W[i-15],7)^r(W[i-15],18)^(W[i-15]>>>3), s1=r(W[i-2],17)^r(W[i-2],19)^(W[i-2]>>>10);
+      W[i]=(W[i-16]+s0+W[i-7]+s1)|0;
+    }
+    let [a,bb,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+W[i])|0;
+      const t2=((r(a,2)^r(a,13)^r(a,22))+((a&bb)^(a&c)^(bb&c)))|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=bb; bb=a; a=(t1+t2)|0;
+    }
+    H=[(H[0]+a)|0,(H[1]+bb)|0,(H[2]+c)|0,(H[3]+d)|0,(H[4]+e)|0,(H[5]+f)|0,(H[6]+g)|0,(H[7]+h)|0];
+  }
+  return H.map(x=>("00000000"+(x>>>0).toString(16)).slice(-8)).join("");
+}
+function pinDigest(pin,salt){
+  let h=sha256hex(salt+":"+pin);
+  for(let i=1;i<PIN_ROUNDS;i++) h=sha256hex(h+salt);
+  return h;
+}
+function pinMake(pin,v){
+  const salt=Array.from({length:16},()=>"0123456789abcdef"[(Math.random()*16)|0]).join("");
+  return {s:salt, h:pinDigest(pin,salt), v:v||1, at:Date.now()};
+}
+function pinCheck(pin){ const p=prefs.pinH; return !!(p && p.h && pinDigest(pin,p.s)===p.h); }
+/* Чей отпечаток главнее: бо́льшая версия, при равной — более ранний. */
+function pinNewer(a,b){
+  if(!a) return false; if(!b) return true;
+  if((a.v||0)!==(b.v||0)) return (a.v||0)>(b.v||0);
+  return (a.at||0)<(b.at||0);
+}
+/* Переезд со старого ПИНа строкой: на папином телефоне превращаем его
+   в отпечаток, строку стираем. На детском он и так стирался. */
+function pinMigrate(){
+  if(typeof prefs.pin==="string" && prefs.pin.length===PIN_LEN && !prefs.pinH && !isChildDevice()){
+    prefs.pinH=pinMake(prefs.pin,1);
+    delete prefs.pin; savePrefs();
+    if(typeof syncTouch==="function") syncTouch();
+    return true;
+  }
+  if(typeof prefs.pin==="string" && prefs.pinH){ delete prefs.pin; savePrefs(); }
+  return false;
+}
+/* Можно ли на этом телефоне придумать ПИН с нуля. */
+let PIN_ASKED=false;
+/* Подключили другой код семьи — отпечаток ПИНа от прежней «семьи» не наш. */
+function pinForgetIfRoomChanged(newRoom){
+  const was=SYNC.cfg&&SYNC.cfg.room;
+  if(was!==newRoom){ delete prefs.pinH; delete prefs.pin; savePrefs(); if(PARENT) setParent(false); }
+}
+/* Окно смены ПИНа — только из включённого родительского режима. */
+function openPinChange(){
+  modal((b,close)=>{
+    b.innerHTML=`<h4>Новый ПИН</h4>
+      <p>Шесть цифр. Он сменится на обоих телефонах при следующем обмене.</p>`;
+    const get=pinFields(b);
+    const foot=document.createElement("div"); foot.className="modalfoot";
+    foot.innerHTML=`<button class="btn ghost" id="pnCancel" type="button">Отмена</button>
+      <button class="btn" id="pnOk" type="button">Сохранить</button>`;
+    b.appendChild(foot);
+    b.querySelector("#pnCancel").onclick=close;
+    b.querySelector("#pnOk").onclick=()=>{
+      const v=get(); if(v.length<PIN_LEN) return;
+      prefs.pinH=pinMake(v,((prefs.pinH&&prefs.pinH.v)||0)+1);
+      savePrefs(); syncTouch(); close();
+      tell("ПИН сменён. На втором телефоне он поменяется при обмене.",{title:"Готово"});
+    };
+  });
+}
+
 
 /* ---------- Защита от перебора ----------
    Шесть цифр — это миллион вариантов, но без задержки их перебирает
@@ -5812,13 +6132,42 @@ function openParentMode(){
         На своём телефоне режим можно не выключать.</p>
         <div class="modalfoot">
           <button class="btn ghost" id="pOff">Выключить</button>
+          <button class="btn ghost" id="pChange">Сменить ПИН</button>
           <button class="btn" id="pStay">Оставить</button>
         </div>`;
       b.querySelector("#pStay").onclick=close;
+      b.querySelector("#pChange").onclick=()=>{ close(); openPinChange(); };
       b.querySelector("#pOff").onclick=()=>{ setParent(false); close(); };
     });
     return;
   }
+  if(!hasPin() && !syncOn()){
+    /* Связи нет — сверять не с чем. Пустой телефон не может «стать папой». */
+    modal((b,close)=>{
+      b.innerHTML=`<h4>Сначала синхронизация</h4>
+        <p>ПИН общий для семьи и хранится в базе. Подключите на этом телефоне
+        код семьи — после этого здесь можно будет войти папиным ПИНом.</p>
+        <div class="modalfoot"><button class="btn ghost" id="pcLater" type="button">Позже</button>
+        <button class="btn" id="pcSync" type="button">Подключить</button></div>`;
+      b.querySelector("#pcLater").onclick=close;
+      b.querySelector("#pcSync").onclick=()=>{ close(); openSync(); };
+    });
+    return;
+  }
+  /* ПИНа у себя нет, связь есть — сперва спрашиваем базу: возможно,
+     папа уже завёл ПИН на своём телефоне, и придумывать новый нельзя. */
+  if(!hasPin() && !PIN_ASKED){
+    PIN_ASKED=true;
+    syncMark("busy","Проверяю базу…");
+    syncPull(true).then(()=>{
+      if(SYNC.state==="err"){ PIN_ASKED=false;
+        tell("Нет связи с базой — проверить ПИН не с чем. Попробуйте, когда появится интернет.",{title:"Нет связи"}); return; }
+      syncMark("ok","Связь есть");
+      openParentMode();
+    });
+    return;
+  }
+  PIN_ASKED=false;
   if(!hasPin()){
     modal((b,close)=>{
       b.innerHTML=`<h4>Придумайте ПИН</h4>
@@ -5836,7 +6185,9 @@ function openParentMode(){
       b.querySelector("#pcOk").onclick=()=>{
         const v=get();
         if(v.length<PIN_LEN){ return; }
-        prefs.pin=v; savePrefs(); setParent(true); close();
+        /* Перед записью ещё раз смотрим базу: вдруг ПИН там уже появился. */
+        if(prefs.pinH){ close(); openParentMode(); return; }
+        prefs.pinH=pinMake(v,1); savePrefs(); syncTouch(); setParent(true); close();
       };
     });
     return;
@@ -5866,7 +6217,7 @@ function openParentMode(){
     b.appendChild(foot);
     b.querySelector("#peCancel").onclick=close;
     b.querySelector("#peOk").onclick=()=>{
-      if(get()===prefs.pin){ pinOk(); setParent(true); close(); return; }
+      if(pinCheck(get())){ pinOk(); setParent(true); close(); return; }
       const g2=pinFail();
       const wait=pinLockedFor();
       const err=b.querySelector("#pinErr");
@@ -6612,6 +6963,397 @@ function openNaryad(){
   });
 }
 
+
+/* ---------- План на неделю (v57, 28 сентября) ----------
+   Решение отца 28 сентября: вариант «Б» из «Конструктор в программе —
+   три варианта.html». Наряд «Назначить сыну» умел только сегодня и
+   завтра, а у дела одна дата — мусор нельзя было поставить на три дня
+   подряд. Поэтому план живёт не в дате, а в самом деле:
+
+     t.plan = {"2026-09-29":"m", "2026-09-30":"b"}   m — обязательно, b — можно больше
+     t.hint = "пакет вынесен раньше, чем папа сказал"  «готово, когда»
+
+   Оба поля правятся только через touch(t) и ездят между телефонами
+   вместе с делом.
+
+   Как план становится нарядом. Каждый раз при отрисовке planApply()
+   ставит на сегодня (date + byParent) те дела, у которых в плане
+   сегодняшний день и которые можно сделать. Это делается БЕЗ touch:
+   оба телефона приходят к одному и тому же сами, из одного плана.
+   С touch телефон папы, открытый вечером до обмена, перебил бы своей
+   «свежей» версией галочку, которую сын поставил днём.
+
+   День плана «съедается» при приёмке (reopenTask): иначе принятое
+   днём дело тут же встало бы в наряд снова и оплатилось дважды.
+
+   «Обязательно» — по решению отца просто подпись для сына: программа
+   его не проверяет, на приёмку и деньги оно не влияет. */
+const PLAN_HINTS={
+  "Вынести мусор, не напоминая":"пакет вынесен раньше, чем папа сказал, в ведре новый пакет",
+  "Помыть посуду после ужина руками":"раковина пустая, посуда на сушилке, губка отжата",
+  "Загрузить и запустить посудомойку":"вся грязная посуда внутри, машина работает",
+  "Разгрузить посудомойку и всё разложить по местам":"машина пустая, всё стоит на своих местах",
+  "Подмести пол на кухне":"под столом и у плиты чисто, совок и веник на месте",
+  "Пропылесосить одну комнату":"вся комната, под кроватью тоже, пылесос убран",
+  "Полить все цветы в квартире":"политы все горшки, под ними сухо",
+  "Поменять полотенца в ванной и на кухне":"чистые висят, грязные в корзине для белья",
+  "Сходить в магазин по списку и принести сдачу с чеком":"всё по списку куплено, сдача и чек у папы",
+  "Влажная уборка полов во всей квартире":"все комнаты вымыты, ведро и тряпка убраны",
+  "Помыть санузел полностью: унитаз, раковина, зеркало, пол":"унитаз, раковина, зеркало и пол чистые",
+  "Помыть ванну и душевую кабину":"ни налёта, ни волос, насухо протёрто",
+  "Пропылесосить всю квартиру, включая под мебелью":"все комнаты, под кроватью и под диваном, пылесос убран",
+  "Протереть пыль везде, включая полки и технику":"провёл пальцем по полке — палец чистый",
+  "Помыть все зеркала в квартире":"ни одного развода, если смотреть сбоку",
+  "Вынести и вымыть мусорные вёдра":"ведро чистое внутри и снаружи, высохло, с новым пакетом",
+  "Почистить овощи на суп":"почищено, помыто, очистки в мусоре",
+  "Приготовить завтрак на всю семью":"все позавтракали, кухня убрана",
+  "Погладить свои вещи":"одежда на завтра поглажена и висит",
+  "Почистить обувь всей семьи":"вся обувь в прихожей чистая и стоит парами",
+  "Пришить пуговицу или зашить шов":"держится крепко, нитки убраны",
+  "Сам подошёл к учителю и спросил, что не понял":"спросил в школе и дома рассказал папе, что ответили",
+  "Сам заметил, что нужно сделать, и сделал без просьбы":"никто не просил, а ты сделал и рассказал папе, что именно",
+  "Стол готов до прихода бабушки: тетради, учебник, ручка — ничего не ищем":"бабушка пришла, а всё уже на столе"
+};
+const PLAN_N=7;
+const PLAN_WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+const PLAN_WDF=["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+function hintOf(t){ return (t && typeof t.hint==="string") ? t.hint : (PLAN_HINTS[t&&t.text]||""); }
+/* Раздел дела в сегодняшнем наряде: "m", "b" или null (старый наряд без разделов). */
+function secOf(t){ return (t && t.plan && t.date && t.plan[t.date]) || null; }
+function planDates(){
+  const out=[], d0=new Date(); d0.setHours(12,0,0,0);
+  for(let i=0;i<PLAN_N;i++){ const d=new Date(d0); d.setDate(d0.getDate()+i); out.push(d); }
+  return out;
+}
+/* Можно ли поставить дело в наряд прямо сейчас. */
+function planAvail(t){ return !t.done && !t.hold && !t.del && !t.log && !onCooldown(t); }
+/* Сколько дней дело ещё отдыхает после приёмки — чтобы честно сказать
+   папе, что в этот день оно в наряд не встанет. */
+function planRestsOn(t,offset){ return cooldownLeft(t)>offset; }
+function planTrim(t){
+  if(!t.plan) return;
+  const T=todayISO();
+  Object.keys(t.plan).forEach(k=>{ if(k<T) delete t.plan[k]; });
+  if(!Object.keys(t.plan).length) delete t.plan;
+}
+let PLAN_APPLYING=false;
+function planApply(){
+  if(PLAN_APPLYING) return 0;
+  PLAN_APPLYING=true;
+  try{
+    const T=todayISO(); let n=0;
+    live().forEach(t=>{
+      /* Решение отца 28 сентября: папино дело — только на свой день.
+         Не сделал — вечером оно просто уходит, на завтра не переносится
+         и «хвостом» в наряде не висит. Сделанное и ждущее приёмки не
+         трогаем. Тоже без touch: оба телефона снимают его сами. */
+      if(t.byParent && t.date && t.date<T && !t.done){
+        /* Замок бонусов (вариант 2А) должен помнить, что обязательное
+           в тот день не сделано, хотя само дело из наряда ушло. */
+        if(t.plan && t.plan[t.date]==="m"){
+          const порог=iso(new Date(Date.now()-30*864e5));
+          t.missed=(t.missed||[]).filter(x=>x>=порог && x!==t.date).concat(t.date);
+        }
+        if(t.plan) delete t.plan[t.date];
+        t.date=null; delete t.byParent;
+        if(t.plan && !Object.keys(t.plan).length) delete t.plan;
+        n++;
+      }
+      if(!t.plan || !t.plan[T] || !planAvail(t)) return;
+      if(t.date!==T || !t.byParent){ t.date=T; t.byParent=true; n++; }
+    });
+    if(n) save();
+    return n;
+  } finally { PLAN_APPLYING=false; }
+}
+/* Пул для выбора: всё с ценой, кроме предложений на согласовании,
+   разового и серий. Серии («5 дней подряд») идут своим блоком
+   и отмечаются по дням, в наряд их не ставят. */
+function planPool(){
+  const порядок={}; CATS.forEach((c,i)=>{ порядок[c.id]=i; });
+  return live().filter(t=>moneyOf(t)>0 && !t.hold && !isOne(t) && !isRun(t))
+    .sort((a,b)=>{
+      const ра=порядок[a.cat], рб=порядок[b.cat];
+      const ца=(ра===undefined?99:ра), цб=(рб===undefined?99:рб);
+      return ца!==цб ? ца-цб : moneyOf(b)-moneyOf(a);
+    });
+}
+function planEsc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function planRunsStarted(){
+  return live().filter(t=>!t.done && isRun(t) && !onCooldown(t) && !t.hold)
+    .map(t=>({t, st:runState(t)})).filter(x=>x.st.n>0);
+}
+const planRunName=t=>(t.text||"").replace(RUN_RE,"").replace(/[\s—-]+$/,"");
+
+function openPlan(){
+  const days=planDates().map(d=>({d, id:iso(d)}));
+  const T=days[0].id;
+  let cur=0;
+  /* Рабочая копия: правки видны сразу, а в дела уходят только по «Готово». */
+  const work=new Map();     /* id → {день: "m"|"b"} */
+  const hints=new Map();    /* id → текст «готово, когда» */
+  const byId=new Map(live().map(t=>[t.id,t]));
+  live().forEach(t=>{
+    const m={};
+    if(t.plan) days.forEach(x=>{ if(t.plan[x.id]) m[x.id]=t.plan[x.id]; });
+    /* Наряд, поставленный старым способом, показываем как обязательное. */
+    if(t.date===T && t.byParent && !m[T]) m[T]="m";
+    if(Object.keys(m).length) work.set(t.id,m);
+  });
+  const secOn=(id,day)=>(work.get(id)||{})[day]||null;
+  /* Порядок строк — как в каталоге; мусор всегда первым: его отец
+     просил в каждом дне отдельно. */
+  const порядок=new Map(planPool().map((t,i)=>[t.id,i]));
+  const место=id=>byId.get(id).text==="Вынести мусор, не напоминая"?-1:(порядок.has(id)?порядок.get(id):999);
+  const onDay=(day,sec)=>Array.from(work.keys()).filter(id=>secOn(id,day)===sec && byId.has(id))
+    .sort((a,c)=>место(a)-место(c));
+  const sumOf=ids=>ids.reduce((s,id)=>s+moneyOf(byId.get(id)),0);
+  const hintFor=id=>hints.has(id)?hints.get(id):hintOf(byId.get(id));
+
+  modal((b,close)=>{
+    b.classList.add("planmodal");
+    function row(id,sec,day,off){
+      const t=byId.get(id);
+      const сделано=day===T && t.done;
+      const отдых=!t.done && planRestsOn(t,off);
+      let тег="";
+      if(сделано) тег='<span class="pltag ok">'+(t.ok?"принято":"сделано")+'</span>';
+      else if(отдых) тег='<span class="pltag rest">в этот день ещё отдыхает</span>';
+      return '<div class="plrow '+sec+(t.text==="Вынести мусор, не напоминая"?" star":"")+'" data-id="'+id+'">'
+        +'<div class="plt"><div class="pln">'+planEsc(t.text)+'</div>'
+        +'<div class="plhint'+(hintFor(id)?"":" empty")+'" data-id="'+id+'" role="button" tabindex="0">'+(hintFor(id)?'<b>Готово, когда:</b> '+planEsc(hintFor(id)):"+ как проверить, что сделано")+'</div>'
+        +тег+'</div>'
+        +'<div class="plp">'+rub(moneyOf(t))+' ₽</div>'
+        +(сделано?'<span></span>':'<button type="button" class="plx" data-del="'+id+'" aria-label="Убрать">×</button>')
+        +'</div>';
+    }
+    function draw(){
+      const day=days[cur].id;
+      const m=onDay(day,"m"), bn=onDay(day,"b");
+      const чипы=days.map((x,i)=>{
+        const s=sumOf(onDay(x.id,"m"));
+        return '<button type="button" class="plday'+(i===cur?" on":"")+(s?" has":"")+'" data-i="'+i+'">'
+          +PLAN_WD[x.d.getDay()]+'<b>'+x.d.getDate()+'</b><i>'+(s?rub(s)+" ₽":"—")+'</i></button>';
+      }).join("");
+      const серии=planRunsStarted();
+      const копия=days.map((x,i)=>i===cur?"":'<button type="button" class="nrchip" data-copy="'+i+'">'
+        +PLAN_WD[x.d.getDay()]+" "+x.d.getDate()+'</button>').join("");
+      const пусто=sec=>'<div class="plempty">Пусто. '+(sec==="m"?"Добавь то, что надо сделать обязательно.":"Бонусы — по желанию сына.")+'</div>';
+      b.innerHTML='<h4>План сыну на неделю</h4>'
+        +'<div class="pldays">'+чипы+'</div>'
+        +'<div class="plsec"><span class="plbadge m">Обязательно</span><span>'+PLAN_WDF[days[cur].d.getDay()].toLowerCase()+', '+days[cur].d.getDate()+' '+MON_G[days[cur].d.getMonth()]+'</span></div>'
+        +(m.length?m.map(id=>row(id,"m",day,cur)).join(""):пусто("m"))
+        +'<button type="button" class="pladd" data-add="m">+ Добавить из каталога</button>'
+        +'<div class="plsec"><span class="plbadge h">Привычки</span><span>ставятся сами из серий</span></div>'
+        +'<div class="plnote">'+(серии.length?"Идут: "+серии.map(x=>planEsc(planRunName(x.t))).join(" · ")
+            :"Ни одна серия сейчас не идёт. Сын начинает их сам в блоке «Серии недели».")+'</div>'
+        +'<div class="plsec"><span class="plbadge b">Можно больше</span><span>по желанию</span></div>'
+        +(bn.length?bn.map(id=>row(id,"b",day,cur)).join(""):пусто("b"))
+        +'<button type="button" class="pladd" data-add="b">+ Добавить из каталога</button>'
+        +((m.length||bn.length)?'<div class="nrlab">Скопировать этот день на</div><div class="pickfilter">'+копия+'</div>':"")
+        +'<div class="picksum"><span>Обязательное '+rub(sumOf(m))+' ₽ · с бонусами до</span><b>'+rub(sumOf(m)+sumOf(bn))+' ₽</b></div>'
+        +'<div class="modalfoot">'
+        +'<button class="btn ghost" id="plPrint" type="button">Распечатать лист</button>'
+        +'<button class="btn" id="plOk" type="button">Готово</button></div>';
+      b.querySelectorAll(".plday").forEach(x=>x.onclick=()=>{ cur=+x.dataset.i; draw(); });
+      b.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>{
+        const w=work.get(x.dataset.del); if(w){ delete w[day]; } draw(); });
+      /* «Готово, когда» правится на месте: нажал — поле, ушёл — сохранилось в черновик. */
+      b.querySelectorAll(".plhint").forEach(x=>x.onclick=()=>{
+        const id=x.dataset.id, ta=document.createElement("textarea");
+        ta.className="plhintedit"; ta.rows=2; ta.value=hintFor(id);
+        ta.placeholder="Готово, когда… например: раковина пустая, посуда на сушилке";
+        x.replaceWith(ta); ta.focus();
+        ta.onblur=()=>{ hints.set(id,ta.value.trim()); draw(); };
+      });
+      b.querySelectorAll("[data-add]").forEach(x=>x.onclick=()=>openPlanPick(x.dataset.add));
+      b.querySelectorAll("[data-copy]").forEach(x=>x.onclick=()=>{
+        const to=days[+x.dataset.copy].id;
+        work.forEach(w=>{ if(w[day] && !w[to]) w[to]=w[day]; });
+        x.classList.add("on"); x.textContent="✓ "+x.textContent;
+        setTimeout(draw,450);
+      });
+      b.querySelector("#plOk").onclick=()=>{ commit(); close(); };
+      b.querySelector("#plPrint").onclick=()=>{ commit(); close(); printPlan(); };
+    }
+    /* Выбор из каталога: раздел задан кнопкой, дней можно отметить сколько угодно. */
+    function openPlanPick(sec){
+      const пул=planPool();
+      const направления=[]; пул.forEach(t=>{ if(направления.indexOf(t.cat)<0) направления.push(t.cat); });
+      const дни=new Set([cur]); const выбор=new Set(); let фильтр="all";
+      modal((p,closeP)=>{
+        p.classList.add("planmodal");
+        function рис(){
+          const дниТекст=Array.from(дни).sort((a,b)=>a-b).map(i=>PLAN_WD[days[i].d.getDay()]).join(", ");
+          const видно=пул.filter(t=>фильтр==="all"||t.cat===фильтр);
+          p.innerHTML='<h4>Добавить в «'+(sec==="m"?"Обязательно":"Можно больше")+'»</h4>'
+            +'<p>Одно дело можно поставить сразу на несколько дней.</p>'
+            +'<div class="nrlab">На какие дни</div><div class="pickfilter">'
+            +days.map((x,i)=>'<button type="button" class="nrchip'+(дни.has(i)?" on":"")+'" data-d="'+i+'">'+PLAN_WD[x.d.getDay()]+" "+x.d.getDate()+'</button>').join("")+'</div>'
+            +'<div class="nrlab">Направление</div><div class="pickfilter nrscroll">'
+            +'<button type="button" class="nrchip'+(фильтр==="all"?" on":"")+'" data-c="all">Все</button>'
+            +направления.map(id=>{ const c=catOf(id); const n=String(c.name||"");
+                return '<button type="button" class="nrchip'+(фильтр===id?" on":"")+'" data-c="'+id+'">'+c.emoji+" "+planEsc(n.length>21?n.slice(0,20).trim()+"…":n)+'</button>'; }).join("")+'</div>'
+            +'<div class="picklist">'+видно.map(t=>{
+                const c=catOf(t.cat); const on=выбор.has(t.id);
+                const уже=Array.from(дни).filter(i=>secOn(t.id,days[i].id)).map(i=>PLAN_WD[days[i].d.getDay()]);
+                const под=on?"встанет на "+дниТекст:(уже.length?"уже стоит на "+уже.join(", "):(c?c.name:""));
+                return '<div class="pickrow'+(on?" on":"")+'" data-t="'+t.id+'" style="--c:'+(c&&c.c||"#999")+'"><div class="cb">'+(on?"✓":"")+'</div>'
+                  +'<div class="t">'+planEsc(t.text)+'<span>'+planEsc(под)+'</span></div><div class="p">'+rub(moneyOf(t))+' ₽</div></div>';
+              }).join("")+'</div>'
+            +'<div class="picksum"><span>Добавится в день</span><b>'+rub(Array.from(выбор).reduce((s,id)=>s+moneyOf(byId.get(id)),0))+' ₽</b></div>'
+            +'<div class="modalfoot"><button class="btn ghost" id="ppNo" type="button">Отмена</button><button class="btn" id="ppYes" type="button">Готово</button></div>';
+          p.querySelectorAll("[data-d]").forEach(x=>x.onclick=()=>{ const i=+x.dataset.d;
+            if(дни.has(i)){ if(дни.size>1) дни.delete(i); } else дни.add(i); рис(); });
+          p.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>{ фильтр=x.dataset.c; рис(); });
+          p.querySelectorAll("[data-t]").forEach(x=>x.onclick=()=>{ const id=x.dataset.t;
+            if(выбор.has(id)) выбор.delete(id); else выбор.add(id);
+            const l=p.querySelector(".picklist"), top=l?l.scrollTop:0; рис();
+            const l2=p.querySelector(".picklist"); if(l2) l2.scrollTop=top; });
+          p.querySelector("#ppNo").onclick=closeP;
+          p.querySelector("#ppYes").onclick=()=>{
+            выбор.forEach(id=>{ const w=work.get(id)||{}; дни.forEach(i=>{ w[days[i].id]=sec; }); work.set(id,w); });
+            closeP(); draw();
+          };
+        }
+        рис();
+      });
+    }
+    function commit(){
+      let n=0;
+      byId.forEach((t,id)=>{
+        const w=work.get(id)||{};
+        const было=JSON.stringify(t.plan||{});
+        const plan=Object.assign({},t.plan||{});
+        days.forEach(x=>{ if(w[x.id]) plan[x.id]=w[x.id]; else delete plan[x.id]; });
+        const tmp={plan}; planTrim(tmp);
+        const стало=JSON.stringify(tmp.plan||{});
+        let changed=было!==стало;
+        if(changed){ if(tmp.plan) t.plan=tmp.plan; else delete t.plan; }
+        /* Убрали из сегодняшнего — снимаем с наряда, если сын ещё не сделал. */
+        if(!w[T] && t.date===T && t.byParent && !t.done){ t.date=null; delete t.byParent; changed=true; }
+        if(hints.has(id)){
+          const h=hints.get(id).trim();
+          const def=PLAN_HINTS[t.text]||"";
+          if(h!==hintOf(t)){ if(h===def) delete t.hint; else t.hint=h; changed=true; }
+        }
+        if(changed){ touch(t); n++; }
+      });
+      planApply();
+      save(); render();
+      return n;
+    }
+    draw();
+  });
+}
+
+/* ---------- Лист для печати ----------
+   Для дней, когда телефон у папы. Печатаются дни недели, на которые
+   что-то поставлено; у каждого дня своя страница. */
+function planSheetHTML(){
+  const days=planDates().map(d=>({d,id:iso(d)}));
+  const T=days[0].id;
+  const L=live();
+  const secFor=(t,day)=>(t.plan&&t.plan[day]) || (day===T && t.date===T && t.byParent ? "m" : null);
+  const серии=planRunsStarted();
+  const точка=DEBT.points.find(p=>p.date>=T);
+  /* Порядок как на экране плана: мусор первым, дальше как в каталоге. */
+  const поз=new Map(planPool().map((t,i)=>[t.id,i]));
+  const место=t=>t.text==="Вынести мусор, не напоминая"?-1:(поз.has(t.id)?поз.get(t.id):999);
+  const порядок=(a,b)=>место(a)-место(b);
+  const строка=(t,sec,dots,имя)=>'<div class="psrow '+sec+(t.text==="Вынести мусор, не напоминая"&&sec==="m"?" star":"")+'"><div class="psbox"></div><div>'
+      +'<div class="pst">'+planEsc(имя||t.text)+'</div>'
+      +(!имя&&hintOf(t)?'<div class="psok"><b>Готово, когда:</b> '+planEsc(hintOf(t))+'</div>':"")
+      +(dots||"")+'</div><div class="psp">'+rub(moneyOf(t))+' ₽'
+      /* Привычка платит один раз — за всю серию, а не за день. Без подписи
+         «120 ₽» на странице каждого дня читалось как оплата за день. */
+      +(имя?'<small>за '+runNeed(t)+' '+plural(runNeed(t),"день","дня","дней")+' подряд</small>':"")+'</div></div>';
+  let tm=0, tb=0, листы="", n=0;
+  days.forEach((x,k)=>{
+    const m=L.filter(t=>secFor(t,x.id)==="m").sort(порядок), bn=L.filter(t=>secFor(t,x.id)==="b").sort(порядок);
+    if(!m.length && !bn.length) return;
+    n++;
+    const sm=m.reduce((s,t)=>s+moneyOf(t),0), sb=bn.reduce((s,t)=>s+moneyOf(t),0);
+    tm+=sm; tb+=sb;
+    const hab=серии.map(({t,st})=>{
+      const base=st.today?st.n:st.n+1, day=Math.min(st.need,base+k);
+      let dots='<div class="psdots">';
+      for(let i=1;i<=st.need;i++) dots+='<span class="'+(i===day?"now":i<day?"was":"")+'">'+i+'</span>';
+      dots+='</div>';
+      return строка(t,"h",dots,planRunName(t));
+    }).join("");
+    листы+='<section class="psday"><div class="pshead"><div><h2>'+PLAN_WDF[x.d.getDay()]+'</h2><div class="psdate">'+x.d.getDate()+" "+MON_G[x.d.getMonth()]+'</div></div>'
+      +'<div class="pssum">обязательное<b>'+rub(sm)+' ₽</b></div></div>'
+      +(m.length?'<h3><span class="plbadge m">Обязательно</span> всё до отбоя</h3>'+m.map(t=>строка(t,"m")).join(""):"")
+      +(hab?'<h3><span class="plbadge h">Привычки</span> отмечай каждый вечер, деньги — когда серия набрана</h3>'+hab:"")
+      +(bn.length?'<h3><span class="plbadge b">Можно больше</span> по желанию</h3>'+bn.map(t=>строка(t,"b")).join(""):"")
+      +'<div class="psfoot"><span>Обязательное — <b>'+rub(sm)+' ₽</b>.'+(sb?' С бонусами — до <b>'+rub(sm+sb)+' ₽</b>.':"")+'</span>'
+      +'<span>Папа проверил: <i></i></span></div></section>';
+  });
+  if(!n) return "";
+  const слово=n===1?"день":n<5?"дня":"дней";
+  return '<section class="psintro"><h1>Мой план на '+n+" "+слово+'</h1>'
+    +'<p>На каждый день — свой лист. Сделал — поставь галочку в квадрате. Вечером покажи лист папе: он проверит и отметит в CashDo.</p>'
+    +'<p><b>Телефон вернётся, когда:</b> <i></i></p>'
+    +(точка?'<div class="psgoal">Следующая точка — <b>'+(+точка.date.slice(8))+" "+MON_G[+точка.date.slice(5,7)-1]+', «'+planEsc(точка.name)+'»</b>: '+planEsc(точка.gift)+'.</div>':"")
+    +'<ul><li>Всё обязательное — <b>'+rub(tm)+' ₽</b>.'+(tb?' С бонусами — до <b>'+rub(tm+tb)+' ₽</b>.':"")+'</li>'
+    +(серии.length?'<li>Привычки платят <b>только за всю серию</b>, не за каждый день. Один пропущенный день прощается, второй — счёт заново.</li>':"")
+    +'</ul></section>'+листы;
+}
+function printPlan(){
+  const html=planSheetHTML();
+  if(!html){ tell("В плане на неделю пока пусто — печатать нечего.",{title:"Лист пуст"}); return; }
+  let box=document.getElementById("planPrint");
+  if(!box){ box=document.createElement("div"); box.id="planPrint"; document.body.appendChild(box); }
+  box.innerHTML=html;
+  document.body.classList.add("planprinting");
+  const off=()=>{ document.body.classList.remove("planprinting"); window.removeEventListener("afterprint",off); };
+  window.addEventListener("afterprint",off);
+  /* Если afterprint не придёт (бывает на айфоне), метка останется —
+     на экране она ничего не меняет, влияет только на печать. */
+  try{ window.print(); }catch(e){ off(); }
+}
+/* ---------- Бонусы после обязательного (вариант 2А, 28 сентября) ----------
+   Всё, что сделано в день, где у папы есть обязательное, — бонусы и своё —
+   принимается только когда обязательное этого дня сделано. Не сделано до
+   вечера — замок держится, пока папа сам не решит: «принять всё равно»
+   или «Вернуть». Серии под замок не попадают: у них свой счёт.
+   Деньги не сгорают — сделанное просто ждёт. */
+function planMustLeft(D){
+  let n=0;
+  live().forEach(t=>{
+    if(t.byParent && t.date===D && t.plan && t.plan[D]==="m" && !t.done) n++;
+    if(t.missed && t.missed.indexOf(D)>=0) n++;
+  });
+  return n;
+}
+function planLock(t){
+  if(!t || !t.done || t.ok || t.log || !t.doneAt || isRun(t)) return 0;
+  const D=iso(new Date(t.doneAt));
+  if(t.byParent && t.plan && (t.plan[D]==="m" || t.plan[t.date]==="m")) return 0;
+  return planMustLeft(D);
+}
+function planLockText(t){
+  const n=planLock(t); if(!n) return "";
+  const D=iso(new Date(t.doneAt));
+  return D===todayISO()
+    ? "примется после обязательного · осталось "+n
+    : "обязательное за "+(+D.slice(8))+" "+MON_G[+D.slice(5,7)-1]+" не сделано";
+}
+/* Пометка в строке дела у сына: раздел плана или просто «Поставил папа». */
+function parNote(t){
+  const s=secOf(t), pn=document.createElement("span");
+  pn.className="parnote"+(s?" "+s:"");
+  pn.textContent=s==="m"?"Обязательно · папа":s==="b"?"Можно больше · папа":"Поставил папа";
+  return pn;
+}
+function hintNote(h){
+  const e=document.createElement("span"); e.className="hintnote";
+  const b=document.createElement("b"); b.textContent="Готово, когда: ";
+  e.append(b, document.createTextNode(h));
+  return e;
+}
+
 /* Сколько нужно зарабатывать в неделю, чтобы успеть к концу договора.
    Считается от остатка и оставшихся дней, а не берётся из настройки:
    чем ближе 18 октября, тем выше недельная норма, и цифра обязана
@@ -6749,10 +7491,10 @@ function renderParentBar(){
   /* Вторая кнопка здесь, а не отдельным блоком: плашка и так видна
      только папе и только в родительском режиме — точнее места нет. */
   box.innerHTML=`<div class="parenton"><span>Родительский режим включён</span>
-    <span class="pbtns"><button type="button" id="pbNar">Назначить сыну</button>
+    <span class="pbtns"><button type="button" id="pbNar">План сыну</button>
     <button type="button" id="pbOff">Выключить</button></span></div>`;
   box.querySelector("#pbOff").onclick=()=>setParent(false);
-  box.querySelector("#pbNar").onclick=openNaryad;
+  box.querySelector("#pbNar").onclick=openPlan;
 }
 
 function renderPending(){
@@ -6784,6 +7526,12 @@ function renderPending(){
     tt.appendChild(sp);
     const pr=document.createElement("div"); pr.className="p";
     pr.textContent=rub(moneyOf(t))+" ₽";
+    const замок=planLockText(t);
+    if(замок){
+      row.classList.add("lock");
+      const lk=document.createElement("span"); lk.className="lk"; lk.textContent="🔒 "+замок;
+      tt.appendChild(lk);
+    }
     row.append(tt,pr);
     if(isParent()){
       const wrapBtn=document.createElement("div");
@@ -6792,11 +7540,18 @@ function renderPending(){
       const no=document.createElement("button"); no.type="button"; no.className="no"; no.textContent="Вернуть";
       no.onclick=()=>returnTask(t);
       wrapBtn.append(ok,no);
+      if(замок){
+        ok.disabled=true;
+        const any=document.createElement("button"); any.type="button"; any.className="anyway";
+        any.textContent="принять всё равно";
+        any.onclick=()=>acceptTask(t,row);
+        wrapBtn.appendChild(any);
+      }
       row.appendChild(wrapBtn);
     }else{
       const w=document.createElement("div");
       w.style.cssText="font-size:11.5px;color:var(--prB-fg);opacity:.8;white-space:nowrap";
-      w.textContent="ждёт папу";
+      w.textContent="ждёт папу";   /* про замок уже сказано строкой под делом */
       row.appendChild(w);
     }
     wrap.appendChild(row);
@@ -6821,7 +7576,6 @@ function renderPending(){
    старых копий данных, где пометки ещё нет. Своё дело можно исключить
    или вернуть переключателем в окне цены. */
 const NO_SUGGEST=new Set([
-  "В дни без кружков сел за уроки до 16:00 сам, без напоминаний",
   "Выучил стихотворение сверх программы",
   "Довёл до конца скучное дело, которое хотел бросить",
   "Месяц занятий с бабушкой без единого срыва — надбавка сверх недельных",
@@ -6837,6 +7591,7 @@ const NO_SUGGEST=new Set([
   "Прошёл онлайн-курс до конца, с сертификатом",
   "Пятёрка за контрольную или самостоятельную",
   "Сам записался и участвовал в олимпиаде",
+  "Сам сел за уроки не позже 15:35, без напоминаний — 5 дней подряд",
   "Собрал модель, схему или робота по инструкции",
   "Собрал портфель с вечера — 5 дней подряд",
 ]);
@@ -6874,6 +7629,13 @@ function reopenTask(t){
     prio:t.prio||"B", price:t.price, done:true, ok:true,
     doneAt:t.doneAt||t.okAt, okAt:t.okAt, earned:t.earned, log:true, of:t.id});
   t.lastOk=t.okAt;
+  /* План на неделю: день, за который дело сдано, «съедается» — иначе
+     принятое днём дело тут же встало бы в наряд снова (см. planApply). */
+  if(t.plan){
+    const день=t.date||(t.doneAt?iso(new Date(t.doneAt)):null);
+    if(день && t.plan[день]) delete t.plan[день];
+    planTrim(t);
+  }
   delete t.done; delete t.doneAt; delete t.ok; delete t.okAt;
   delete t.earned; delete t.date; delete t.back; delete t.byParent; delete t.run;
   /* Обязательно. Снимая отметки, дело теряет все свои метки времени
@@ -6910,7 +7672,9 @@ function todayPlan(){
   const seen=new Set(doneToday.map(t=>t.id));
   const take=arr=>arr.filter(t=>{ if(seen.has(t.id)) return false; seen.add(t.id); return true; });
   const over=take(live().filter(t=>!t.done&&t.date&&t.date<T)).slice(0,2);
-  const dated=take(live().filter(t=>!t.done&&t.date===T));
+  /* Папин план: сначала обязательное, потом без раздела, потом бонусы. */
+  const ранг=t=>{ const s=secOf(t); return s==="m"?0:t.byParent&&!s?1:s==="b"?2:3; };
+  const dated=take(live().filter(t=>!t.done&&t.date===T).sort((a,b)=>ранг(a)-ранг(b)));
   let plan=doneToday.concat(over,dated);
   const free=live().filter(t=>!t.done&&moneyOf(t)>0&&!seen.has(t.id)&&suggestable(t)&&!isOne(t)&&!t.hold);
   const byPrice=(a,b)=>moneyOf(a)-moneyOf(b);
@@ -7097,9 +7861,9 @@ function skinShiftFill(box){
          блок сверху обещает «3 дела», а в наряде рядом стоят обычные
          подсказки — какие из них папины, сын не отличит. */
       if(t.byParent){
-        const pn=document.createElement("span");
-        pn.className="parnote"; pn.textContent="Поставил папа";
-        tt.appendChild(pn);
+        tt.appendChild(parNote(t));
+        const hn=!t.done?hintOf(t):"";
+        if(hn) tt.appendChild(hintNote(hn));
       }
       if(t.back){
         const bn=document.createElement("span");
@@ -7414,6 +8178,8 @@ function checkStorage(){
 }
 checkStorage();
 loadParent();
+/* Старый ПИН строкой → отпечаток, сразу при запуске, чтобы он уехал в базу. */
+try{ pinMigrate(); }catch(e){}
 init();
 syncLoadCfg();
 syncStart();

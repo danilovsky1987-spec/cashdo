@@ -6,7 +6,7 @@
    ВАЖНО при обновлении сайта: поменяй число в VERSION (например
    v3 → v4). Иначе телефон продолжит показывать старую версию из кэша. */
 
-const VERSION = "homedo-dengi-v56";
+const VERSION = "homedo-dengi-v58";
 const SHELL = [
   "./",
   "./index.html",
